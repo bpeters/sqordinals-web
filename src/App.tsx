@@ -11,7 +11,7 @@ import {
   Image,
   HStack,
 } from "@chakra-ui/react"
-import { FaTwitter, FaMediumM } from 'react-icons/fa'
+import { FaTwitter, FaMediumM, FaDiscord } from 'react-icons/fa'
 
 import './Sqord';
 import MusicPlayer from "./MusicPlayer";
@@ -52,6 +52,17 @@ export const App = () => (
               alt="Sqordinals"
               width="140px"
             />
+            <Box
+              _hover={{
+                cursor: 'pointer',
+                opacity: 0.8,
+              }}
+              onClick={() => openInNewTab('https://discord.gg/sqordinals')}
+            >
+              <FaDiscord
+                color='#01FFFF'
+              />
+            </Box>
             <Box
               _hover={{
                 cursor: 'pointer',

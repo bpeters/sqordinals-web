@@ -62,7 +62,7 @@ const makeSqord = (hash: any, isNext: boolean) => {
   sqord.fuzzy = sqord.pipe && !sqord.slinky;
   sqord.flipper = sqord.decPairs[5] < 15
   sqord.squared = sqord.decPairs[6] < 15;
-  sqord.spread = sqord.decPairs[28] < 3 ? 0.5 : q5.map(sqord.decPairs[28], 0, 255, 5, 50);
+  sqord.spread = sqord.decPairs[28] < 15 ? 0.5 : q5.map(sqord.decPairs[28], 0, 255, 5, 50);
   sqord.index = 0;
   sqord.steps = sqord.slinky ?
     (sqord.decPairs[17] % 100) :
@@ -73,6 +73,7 @@ const makeSqord = (hash: any, isNext: boolean) => {
   if (isNext) {
     sqord.reverse = sqord1.reverse;
     sqord.amp = sqord1.amp;
+    sqord.flipper = sqord1.flipper;
 
     if (!sqord.reverse) {
       moveSegmentsR2 = q5.floor(sqord.segments);
@@ -95,14 +96,8 @@ let sqord1 = makeSqord(generateRandomHexSimple(''), false);
 let sqord2 = makeSqord(generateRandomHex(), true);
 let stop = false;
 
-// let infinite = true;
-// let eraser = true;
-// reverse = false;
-
 q5.setup = function() {
-  let portrait = q5.windowWidth < q5.windowHeight;
   q5.createCanvas(q5.windowWidth, q5.windowHeight);
-  // q5.createCanvas(q5.windowWidth > q5.windowHeight * 3 / 2 ? q5.windowHeight * 3 / 2 : q5.windowWidth, q5.windowWidth > q5.windowHeight * 3 / 2 ? q5.windowHeight : q5.windowWidth * 2 / 3);
   q5.colorMode(q5.HSB, 255);
   q5.strokeWeight(q5.height/1200);
 }
@@ -126,10 +121,6 @@ q5.draw = function() {
   // sqord1 = prepareSqord(sqord1);
   sqord2 = prepareSqord(sqord2);
 
-  // if (infinite && abs(index) > speed * (flipper ? 10 : 1000)) {
-  //   updateHash();
-  // }
-
   const handleSteps = (j: any, i: any, sqord: any) => {
     let t = i / sqord.steps;
 
@@ -150,8 +141,8 @@ q5.draw = function() {
     );
 
     let hue = sqord.reverse ?
-      255 - (((sqord.color / sqord.spread) + sqord.startColor + sqord.index) % 255) :
-      (((sqord.color / sqord.spread) + sqord.startColor) + sqord.index) % 255;
+      255 - (((sqord.color / sqord.spread) + sqord.startColor + q5.abs(sqord.index)) % 255) :
+      (((sqord.color / sqord.spread) + sqord.startColor) + q5.abs(sqord.index)) % 255;
 
     if (sqord.fuzzy) {
       q5.noStroke();
@@ -214,7 +205,24 @@ q5.draw = function() {
     }
   };
 
-  if (!sqord2.start) {
+  if (sqord2.flipper) {
+    for (let j = 0; j < (sqord2.segments - 1); j++) {
+      for (let i = 0; i <= (sqord2.steps); i++) {
+        handleSteps(j, i, sqord2);
+        sqord2.color++;
+      }
+
+      sqord2.seed = parseInt(sqord2.hash.slice(0, 16), 16);
+    };
+
+    sqord2.index = sqord2.reverse ? (sqord2.index - sqord2.speed) : sqord2.index + sqord2.speed;
+
+    if (q5.abs(sqord2.index) > sqord2.speed * 15) {
+      sqord2 = makeSqord(generateRandomHex(), true);
+    }
+  }
+
+  if (!sqord2.start && !sqord2.flipper) {
     for (let j = moveSegments; j < (sqord2.segments - moveSegmentsR - 1); j++) {
       let dSteps = 0;
       let dStepsR = 0;
@@ -241,6 +249,8 @@ q5.draw = function() {
       } else {
         moveStepsR++
       }
+
+      sqord2.index = sqord2.reverse ? (sqord2.index - sqord2.speed) : sqord2.index + sqord2.speed;
     }
 
     if (sqord2.reverse && moveSteps === sqord2.steps) {
@@ -273,7 +283,7 @@ q5.draw = function() {
     }
   }
 
-  if (sqord2.start) {
+  if (sqord2.start && !sqord2.flipper) {
     for (let j = moveSegmentsR2; j < moveSegments2; j++) {
       let dSteps = 0;
       let dStepsR = 0;
@@ -312,6 +322,8 @@ q5.draw = function() {
           moveStepsR2--;
         }
       }
+
+      sqord2.index = sqord2.reverse ? (sqord2.index - sqord2.speed) : sqord2.index + sqord2.speed;
     }
 
     if (sqord2.reverse && moveSteps2 === sqord2.steps && moveSegments2 < sqord2.segments) {
@@ -350,9 +362,6 @@ q5.draw = function() {
       }, 10000);
     }
   }
-
-  // sqord1.index = sqord1.reverse ? (sqord1.index - sqord1.speed) : sqord1.index + sqord1.speed;
-  sqord2.index = sqord2.reverse ? (sqord2.index - sqord2.speed) : sqord2.index + sqord2.speed;
 }
 
 // q5.touchStarted = function() {
