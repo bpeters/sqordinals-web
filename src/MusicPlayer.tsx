@@ -31,6 +31,7 @@ const MusicPlayer = () => {
 
     if (isPlaying) {
       audioRef.current.play();
+      audioRef.current.volume = volume;
     }
 
     return () => {

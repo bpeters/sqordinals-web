@@ -99,10 +99,10 @@ const makeSqord = (hash: any, isNext: boolean) => {
   sqord.index = 0;
   sqord.pause = false;
   sqord.steps = sqord.slinky ?
-    (sqord.decPairs[17] % 100) :
+    ((sqord.decPairs[17] % 100) + 1) :
     sqord.fuzzy ?
-      (sqord.decPairs[17] % 2000) :
-      (sqord.decPairs[17] % 400);
+      ((sqord.decPairs[17] % 2000) + 1) :
+      ((sqord.decPairs[17] % 400) + 1);
 
   if (isNext) {
     sqord.reverse = sqord2.reverse;
@@ -251,6 +251,7 @@ q5.draw = function() {
 
     if (!sqord2.pause && q5.abs(sqord2.index) > sqord2.speed * 15) {
       sqord2 = makeSqord(generateRandomHex(), true);
+      console.log(sqord2.hash);
     }
   }
 
