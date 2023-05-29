@@ -2,6 +2,7 @@ export {};
 
 declare global {
   var Q5: any;
+  interface Window { hash: string; }
 }
 
 let q5 = new Q5();
@@ -12,7 +13,6 @@ let moveSteps = 0;
 let moveStepsR = 0;
 let moveSegments = 0;
 let moveSegmentsR = 0;
-
 let moveSteps2 = 0;
 let moveStepsR2 = 0;
 let moveSegments2 = 0;
@@ -36,10 +36,41 @@ function generateRandomHex() {
   return '0x' + result;
 }
 
+setInterval(() => {
+  if (sqord2 && window.newHash && window.seed) {
+    lcg_index = 0;
+
+    moveSteps = 0;
+    moveStepsR = 0;
+    moveSegments = 0;
+    moveSegmentsR = 0;
+    moveSteps2 = 0;
+    moveStepsR2 = 0;
+    moveSegments2 = 0;
+    moveSegmentsR2 = 0;
+
+    sqord2 = makeSqord(generateRandomHexSimple(window.newHash), false);
+    sqord2.pause = false;
+    window.seed = false;
+  }
+
+  if (sqord2 && window.isPause && !sqord2.changing) {
+    sqord2.pause = true;
+  }
+
+  if (sqord2 && window.isPause === false && !sqord2.changing) {
+    sqord2.pause = false;
+  }
+}, 300);
+
 const makeSqord = (hash: any, isNext: boolean) => {
   let sqord: any = {
     hash,
     hashPairs: [],
+  }
+
+  if (!isNext) {
+    window.hash = hash;
   }
 
   for (let j = 0; j < 32; j++) {
@@ -64,6 +95,7 @@ const makeSqord = (hash: any, isNext: boolean) => {
   sqord.squared = sqord.decPairs[6] < 15;
   sqord.spread = sqord.decPairs[28] < 15 ? 0.5 : q5.map(sqord.decPairs[28], 0, 255, 5, 50);
   sqord.index = 0;
+  sqord.pause = false;
   sqord.steps = sqord.slinky ?
     (sqord.decPairs[17] % 100) :
     sqord.fuzzy ?
@@ -71,19 +103,19 @@ const makeSqord = (hash: any, isNext: boolean) => {
       (sqord.decPairs[17] % 400);
 
   if (isNext) {
-    sqord.reverse = sqord1.reverse;
-    sqord.amp = sqord1.amp;
-    sqord.flipper = sqord1.flipper;
-
-    if (!sqord.reverse) {
-      moveSegmentsR2 = q5.floor(sqord.segments);
-      moveSegments2 = q5.floor(sqord.segments);
-      moveStepsR2 = sqord.steps;
-      moveSteps2 = sqord.steps;
-    }
+    sqord.reverse = sqord2.reverse;
+    sqord.amp = sqord2.amp;
+    sqord.flipper = sqord2.flipper;
   } else {
     sqord.amp = ((sqord.decPairs[2] % 128) / 100);
     sqord.reverse = sqord.decPairs[30] < 128;
+  }
+
+  if (!sqord.reverse) {
+    moveSegmentsR2 = q5.floor(sqord.segments);
+    moveSegments2 = q5.floor(sqord.segments);
+    moveStepsR2 = sqord.steps;
+    moveSteps2 = sqord.steps;
   }
 
   sqord.start = true;
@@ -92,8 +124,7 @@ const makeSqord = (hash: any, isNext: boolean) => {
 };
 
 // add text string input to generateRandomHexSimple for same output
-let sqord1 = makeSqord(generateRandomHexSimple(''), false);
-let sqord2 = makeSqord(generateRandomHex(), true);
+let sqord2 = makeSqord(generateRandomHexSimple(''), false);
 let stop = false;
 
 q5.setup = function() {
@@ -118,7 +149,6 @@ q5.draw = function() {
     return sqord;
   }
 
-  // sqord1 = prepareSqord(sqord1);
   sqord2 = prepareSqord(sqord2);
 
   const handleSteps = (j: any, i: any, sqord: any) => {
@@ -158,7 +188,7 @@ q5.draw = function() {
       }
     } else {
       if (sqord.slinky && sqord.pipe) {
-        if (i == 0 || i == (sqord.steps) - 1) {
+        if (i === 0 || i === (sqord.steps) - 1) {
           q5.fill(0);
         } else {
           q5.noFill();
@@ -173,7 +203,7 @@ q5.draw = function() {
       }
 
       if (sqord.slinky) {
-        if (i == 0 || i == (sqord.steps) - 1) {
+        if (i === 0 || i === (sqord.steps) - 1) {
           q5.fill(hue, 255, 255);
         } else {
           q5.noFill();
@@ -191,7 +221,7 @@ q5.draw = function() {
       }
 
       if (sqord.segmented && !sqord.slinky && !sqord.bold) {
-        if (i % sqord.div === 0 || i == 0 || i == (sqord.steps) - 1) {
+        if (i % sqord.div === 0 || i === 0 || i === (sqord.steps) - 1) {
           q5.noStroke();
           q5.fill(sqord.decPairs[25]);
 
@@ -217,7 +247,7 @@ q5.draw = function() {
 
     sqord2.index = sqord2.reverse ? (sqord2.index - sqord2.speed) : sqord2.index + sqord2.speed;
 
-    if (q5.abs(sqord2.index) > sqord2.speed * 15) {
+    if (!sqord2.pause && q5.abs(sqord2.index) > sqord2.speed * 15) {
       sqord2 = makeSqord(generateRandomHex(), true);
     }
   }
@@ -336,8 +366,9 @@ q5.draw = function() {
       moveStepsR2 = sqord2.steps;
     }
 
-    if (!sqord2.pause && sqord2.reverse && moveSegments2 === q5.floor(sqord2.segments)) {
+    if (!sqord2.pause && sqord2.reverse && moveSegments2 >= q5.floor(sqord2.segments)) {
       sqord2.pause = true;
+      sqord2.changing = true;
 
       setTimeout(() => {
         moveSteps = 0;
@@ -347,9 +378,11 @@ q5.draw = function() {
         sqord2.reverse = false
         sqord2.start = false;
         sqord2.pause = false;
+        sqord2.changing = false;
       }, 10000);
-    } else if (!sqord2.pause && !sqord2.reverse && moveSegmentsR2 === 0) {
+    } else if (!sqord2.pause && !sqord2.reverse && moveSegmentsR2 <= 0) {
       sqord2.pause = true;
+      sqord2.changing = true;
 
       setTimeout(() => {
         moveSteps = 0;
@@ -359,18 +392,11 @@ q5.draw = function() {
         sqord2.reverse = true
         sqord2.start = false;
         sqord2.pause = false;
+        sqord2.changing = false;
       }, 10000);
     }
   }
 }
-
-// q5.touchStarted = function() {
-//   stop = !stop;
-// }
-
-// q5.mouseClicked = function () {
-//   stop = !stop;
-// }
 
 function rnd(sqord: any) {
   sqord.seed ^= sqord.seed << 13;
@@ -387,10 +413,15 @@ function generateRandomHexSimple(input: any) {
   }
 
   if (!input) {
-    lcg_index = Math.random()
+    lcg_index = hashToNumber('0x' + result)
     return '0x' + result
   } else {
-    const hash = pseudoHash(input);
+    let hash = input;
+
+    if (!hash.startsWith('0x') || hash.length !== 66) {
+      hash = pseudoHash(input);
+    }
+
     lcg_index = hashToNumber(hash);
     return hash;
   }
