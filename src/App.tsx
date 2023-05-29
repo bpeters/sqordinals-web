@@ -78,11 +78,13 @@ export const App = () => {
             <HStack
               spacing={4}
               paddingLeft={'10px'}
+              justify={'flex-start'}
+              align={'flex-start'}
             >
               <MusicPlayer />
               <IconButton
                 aria-label="Vibe"
-                icon={isPause ? <TbWaveSine color="#FE0101" /> : <TbInfinity color="#16FE07" />}
+                icon={isPause ? <TbWaveSine color="#FE0101" size={'20px'} /> : <TbInfinity color="#16FE07" size={'20px'} />}
                 onClick={handlePause}
                 backgroundColor="black"
                 _hover={{ backgroundColor: 'gray.800' }}
@@ -91,6 +93,7 @@ export const App = () => {
               <Text
                 fontSize={'12px'}
                 fontWeight={'bold'}
+                paddingTop={'10px'}
               >
                 {isPause ? 'Vibe' : 'Infinite'}
               </Text>

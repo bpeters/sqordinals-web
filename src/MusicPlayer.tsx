@@ -1,6 +1,6 @@
-import { Box, Button, Flex, IconButton } from '@chakra-ui/react';
+import { Slider, SliderTrack, SliderFilledTrack, SliderThumb, IconButton, VStack } from '@chakra-ui/react';
 import { useState, useEffect, useRef } from 'react';
-import { FaPlay, FaPause } from 'react-icons/fa'
+import { FaPlay, FaPause, FaMusic } from 'react-icons/fa'
 
 const songs = [
   '/audio/1_sigma.d.wav',
@@ -18,6 +18,7 @@ const MusicPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSongIndex, setCurrentSongIndex] = useState(Math.floor(Math.random() * songs.length));
   const audioRef: any = useRef(null);
+  const [volume, setVolume] = useState(1);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -38,6 +39,11 @@ const MusicPlayer = () => {
     };
   }, [currentSongIndex, isPlaying]);
 
+  useEffect(() => {
+    audioRef.current.volume = volume;
+  }, [volume]);
+
+
   const playNextSong = () => {
     let nextSongIndex;
     do {
@@ -50,15 +56,39 @@ const MusicPlayer = () => {
     setIsPlaying(!isPlaying);
   };
 
+  const handleVolumeChange = (value: any) => {
+    setVolume(value);
+  };
+
   return (
-    <IconButton
-      aria-label="Play pause"
-      icon={isPlaying ? <FaPause color="#FE0101" /> : <FaPlay color="#16FE07" />}
-      onClick={handlePlayPause}
-      backgroundColor="black"
-      _hover={{ backgroundColor: 'gray.800' }}
-      _active={{ backgroundColor: 'gray.900' }}
-    />
+    <VStack
+      spacing={4}
+    >
+      <IconButton
+        aria-label="Play pause"
+        icon={isPlaying ? <FaPause color="#FE0101" /> : <FaMusic color="#16FE07" />}
+        onClick={handlePlayPause}
+        backgroundColor="black"
+        _hover={{ backgroundColor: 'gray.800' }}
+        _active={{ backgroundColor: 'gray.900' }}
+      />
+      <Slider
+        aria-label="slider-ex-4"
+        value={volume}
+        min={0}
+        max={1}
+        step={0.01}
+        onChange={handleVolumeChange}
+        orientation="vertical"
+        height={'100px'}
+        colorScheme="pink"
+      >
+        <SliderTrack bg="gray.300">
+          <SliderFilledTrack bg="pink.500" />
+        </SliderTrack>
+        <SliderThumb boxSize={3} />
+      </Slider>
+    </VStack>
   );
 };
 

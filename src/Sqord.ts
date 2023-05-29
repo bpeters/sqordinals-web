@@ -1,3 +1,5 @@
+import { SHA256 } from 'crypto-js';
+
 export {};
 
 declare global {
@@ -438,10 +440,7 @@ function hashToNumber(hash: any) {
 }
 
 function pseudoHash(s: any) {
-  let h = '';
-  for (let i = 0; i < 64; i++) {
-    let charCode = Math.abs(s.charCodeAt(i % s.length));
-    h += (charCode % 16).toString(16);
-  }
-  return h;
+  const hash = SHA256(s);
+  return hash.toString();
 }
+
