@@ -127,6 +127,7 @@ const makeSqord = (hash: any, isNext: boolean) => {
 
 // add text string input to generateRandomHexSimple for same output
 let sqord2 = makeSqord(generateRandomHexSimple(''), false);
+console.log(sqord2.hash);
 let stop = false;
 
 q5.setup = function() {
@@ -298,6 +299,7 @@ q5.draw = function() {
 
     if (sqord2.reverse && moveSegments === q5.floor(sqord2.segments)) {
       sqord2 = makeSqord(generateRandomHex(), true);
+      console.log(sqord2.hash);
       moveSegmentsR2 = q5.floor(sqord2.segments);
       moveSegments2 = q5.floor(sqord2.segments);
       moveStepsR2 = sqord2.steps;
@@ -307,6 +309,7 @@ q5.draw = function() {
 
     } else if (!sqord2.reverse && moveSegmentsR === q5.floor(sqord2.segments)) { 
       sqord2 = makeSqord(generateRandomHex(), true);
+      console.log(sqord2.hash);
       moveSegmentsR2 = 0;
       moveSegments2 = 0;
       moveStepsR2 = 0;
