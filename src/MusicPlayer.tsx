@@ -44,7 +44,6 @@ const MusicPlayer = () => {
     audioRef.current.volume = volume;
   }, [volume]);
 
-
   const playNextSong = () => {
     let nextSongIndex;
     do {

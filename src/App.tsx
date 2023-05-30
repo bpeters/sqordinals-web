@@ -1,4 +1,5 @@
 import { useState } from "react"
+import ReactGA from 'react-ga';
 import {
   ChakraProvider,
   Box,
@@ -25,6 +26,8 @@ declare global {
     isPause: boolean;
   }
 }
+
+ReactGA.initialize('G-S8026RGDNM');
 
 const theme = extendTheme({
   styles: {
