@@ -38,6 +38,11 @@ function generateRandomHex() {
   return '0x' + result;
 }
 
+function isSHA256Hash(str: string) {
+  const sha256Regex = /^0x[a-f0-9]{64}$/i;
+  return sha256Regex.test(str);
+}
+
 setInterval(() => {
   if (sqord2 && window.newHash && window.seed) {
     lcg_index = 0;
@@ -52,6 +57,7 @@ setInterval(() => {
     moveSegmentsR2 = 0;
 
     sqord2 = makeSqord(generateRandomHexSimple(window.newHash), false);
+    console.log(sqord2.hash);
     sqord2.pause = false;
     window.seed = false;
   }
@@ -88,12 +94,16 @@ const makeSqord = (hash: any, isNext: boolean) => {
   sqord.speed = ((sqord.decPairs[1] % 128) / 100) + 0.1;
   sqord.segments = q5.map(sqord.decPairs[26], 0, 255, 12, 20);
   sqord.startColor = sqord.decPairs[29];
-  sqord.slinky = sqord.decPairs[31] < 35;
-  sqord.pipe = sqord.decPairs[22] < 32;
+  sqord.slinky = sqord.decPairs[31] < 30;
+  sqord.pipe = sqord.decPairs[22] < 30;
   sqord.bold = sqord.decPairs[23] < 15;
   sqord.segmented = sqord.decPairs[24] < 30;
   sqord.fuzzy = sqord.pipe && !sqord.slinky;
-  sqord.flipper = sqord.decPairs[5] < 15
+  sqord.flipper = sqord.decPairs[5] < 15;
+  sqord.familia = sqord.decPairs[4] < 15;
+  sqord.flowers = sqord.decPairs[3] < 15;
+  sqord.creepy = sqord.decPairs[7] < 15;
+  sqord.dodge = sqord.decPairs[8] < 15;
   sqord.squared = sqord.decPairs[6] < 15;
   sqord.spread = sqord.decPairs[28] < 15 ? 0.5 : q5.map(sqord.decPairs[28], 0, 255, 5, 50);
   sqord.index = 0;
@@ -108,6 +118,16 @@ const makeSqord = (hash: any, isNext: boolean) => {
     sqord.reverse = sqord2.reverse;
     sqord.amp = sqord2.amp;
     sqord.flipper = sqord2.flipper;
+    sqord.familia = sqord2.familia;
+
+    if (sqord.familia) {
+      sqord.startColor = sqord2.startColor;
+      sqord.slinky = sqord2.slinky;
+      sqord.pipe = sqord2.pipe;
+      sqord.bold = sqord2.bold;
+      sqord.segmented = sqord2.segmented;
+      sqord.fuzzy = sqord2.fuzzy;
+    }
   } else {
     sqord.amp = ((sqord.decPairs[2] % 128) / 100);
     sqord.reverse = sqord.decPairs[30] < 128;
@@ -157,21 +177,43 @@ q5.draw = function() {
   const handleSteps = (j: any, i: any, sqord: any) => {
     let t = i / sqord.steps;
 
-    let x = q5.curvePoint(
-      q5.width / sqord.segments / sqord.wt * j,
-      q5.width / sqord.segments / sqord.wt * (j + 1),
-      q5.width / sqord.segments / sqord.wt * (j + 2),
-      q5.width / sqord.segments / sqord.wt * (j + 3),
-      t
-    );
+    if (sqord.flowers) {
+      t = 1
+    }
 
-    let y = q5.curvePoint(
-      q5.map(sqord.decPairs[j], 0, 255, -q5.height / sqord.ht, q5.height / sqord.ht) * sqord.amp,
-      q5.map(sqord.decPairs[j + 1], 0, 255, -q5.height / sqord.ht, q5.height / sqord.ht) * sqord.amp,
-      q5.map(sqord.decPairs[j + 2], 0, 255, -q5.height / sqord.ht, q5.height / sqord.ht) * sqord.amp,
-      q5.map(sqord.decPairs[j + 3], 0, 255, -q5.height / sqord.ht, q5.height / sqord.ht) * sqord.amp,
-      t
-    );
+    let x1 = q5.width / sqord.segments / sqord.wt * j;
+    let x2 = q5.width / sqord.segments / sqord.wt * (j + 1);
+    let x3 = q5.width / sqord.segments / sqord.wt * (j + 2);
+    let x4 = q5.width / sqord.segments / sqord.wt * (j + 3);
+    let y1 = q5.map(sqord.decPairs[j], 0, 255, -q5.height / sqord.ht, q5.height / sqord.ht) * sqord.amp;
+    let y2 = q5.map(sqord.decPairs[j + 1], 0, 255, -q5.height / sqord.ht, q5.height / sqord.ht) * sqord.amp;
+    let y3 = q5.map(sqord.decPairs[j + 2], 0, 255, -q5.height / sqord.ht, q5.height / sqord.ht) * sqord.amp;
+    let y4 = q5.map(sqord.decPairs[j + 3], 0, 255, -q5.height / sqord.ht, q5.height / sqord.ht) * sqord.amp;
+
+    let x = q5.curvePoint(x1, x2, x3, x4, t);
+    let y = q5.curvePoint(y1, y2, y3, y4, t);
+
+    if (sqord.creepy) {
+      let u = 1 - t;
+      let tt = t * t;
+      let uu = u * u;
+      let uuu = uu * u;
+      let ttt = tt * t;
+
+      x = uuu * x1 + 3 * uu * t * x2 + 3 * u * tt * x3 + ttt * x4;
+      y = uuu * y1 + 3 * uu * t * y2 + 3 * u * tt * y3 + ttt * y4;
+    }
+  
+    if (sqord.flowers) {
+      let x0 = q5.curvePoint(x1, x2, x3, x4, 0);
+      let y0 = q5.curvePoint(y1, y2, y3, y4, 0);
+
+      q5.beginShape();
+
+      q5.quadraticVertex(x, y, x0, y0);
+
+      q5.endShape();
+    }
 
     let hue = sqord.reverse ?
       255 - (((sqord.color / sqord.spread) + sqord.startColor + q5.abs(sqord.index)) % 255) :
@@ -381,7 +423,9 @@ q5.draw = function() {
         moveStepsR = 0;
         moveSegments = 0;
         moveSegmentsR = 0;
-        sqord2.reverse = false
+        if (!sqord2.dodge) {
+          sqord2.reverse = false
+        }
         sqord2.start = false;
         sqord2.pause = false;
         sqord2.changing = false;
@@ -395,7 +439,9 @@ q5.draw = function() {
         moveStepsR = 0;
         moveSegments = 0;
         moveSegmentsR = 0;
-        sqord2.reverse = true
+        if (!sqord2.dodge) {
+          sqord2.reverse = true;
+        }
         sqord2.start = false;
         sqord2.pause = false;
         sqord2.changing = false;
@@ -412,24 +458,31 @@ function rnd(sqord: any) {
 }
 
 function generateRandomHexSimple(input: any) {
-  let result = '';
-  const characters = 'abcdef0123456789';
-  for (let i = 0; i < 64; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-
-  if (!input) {
-    lcg_index = hashToNumber('0x' + result)
-    return '0x' + result
+  if (isSHA256Hash(input)) {
+    lcg_index = hashToNumber(input);
+    return input;
   } else {
-    let hash = input;
-
-    if (!hash.startsWith('0x') || hash.length !== 66) {
-      hash = pseudoHash(input);
+    let result = '';
+    const characters = 'abcdef0123456789';
+    for (let i = 0; i < 64; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
     }
+  
+    if (!input) {
+      lcg_index = hashToNumber('0x' + result)
+      return '0x' + result
+    } else {
+      let hash = input;
+  
+      if (!hash.startsWith('0x') || hash.length !== 66) {
+        hash = pseudoHash(input);
+      }
 
-    lcg_index = hashToNumber(hash);
-    return hash;
+      console.log(hash)
+  
+      lcg_index = hashToNumber(hash);
+      return hash;
+    }
   }
 }
 
@@ -445,6 +498,6 @@ function hashToNumber(hash: any) {
 
 function pseudoHash(s: any) {
   const hash = SHA256(s);
-  return hash.toString();
+  return `0x${hash.toString()}`
 }
 
