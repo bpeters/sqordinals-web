@@ -192,6 +192,7 @@ const Home = () => {
           <HStack
             spacing={4}
             paddingLeft={'10px'}
+            paddingTop={'6px'}
           >
             <Text fontSize={'12px'}>
               Deterministically Infinite Onchain Art, Secured by <b>Bitcoin</b>
@@ -206,7 +207,10 @@ const Home = () => {
             }}
             onClick={() => openInNewTab('https://www.squiggledao.com/learn')}
           >
-            <Text fontSize={'12px'}>
+            <Text
+              fontSize={'10px'}
+              color={'#01FFFF'}
+            >
               Inspired by <b>Chromie Squiggles</b> by Erick Calderon "Snowfro"
             </Text>
           </HStack>
