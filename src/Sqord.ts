@@ -58,6 +58,7 @@ setInterval(() => {
 
     sqord2 = makeSqord(generateRandomHexSimple(window.newHash), false);
     console.log(sqord2.hash);
+    console.log(sqord2)
     sqord2.pause = false;
     window.seed = false;
   }
@@ -224,7 +225,8 @@ q5.draw = function() {
       q5.fill(hue, 255, 255, 20);
       let fuzzX = x + q5.map(rnd(sqord), 0, 1, 0, q5.height / 10);
       let fuzzY = y + q5.map(rnd(sqord), 0, 1, 0, q5.height / 10);
-      if (q5.dist(x, y, fuzzX, fuzzY) < q5.height / 11.5) {
+
+      if (q5.dist(x, y, fuzzX, fuzzY) < q5.height / 10) {
         if (sqord.squared) {
           q5.square(fuzzX, fuzzY, q5.map(rnd(sqord), 0, 1, q5.height / 160, q5.height / 16));
         } else {
