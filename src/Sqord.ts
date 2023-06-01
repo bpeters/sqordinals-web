@@ -217,8 +217,8 @@ q5.draw = function() {
     }
 
     let hue = sqord.reverse ?
-      255 - (((sqord.color / sqord.spread) + sqord.startColor + q5.abs(sqord.index)) % 255) :
-      (((sqord.color / sqord.spread) + sqord.startColor) + q5.abs(sqord.index)) % 255;
+      360 - (((sqord.color / sqord.spread) + sqord.startColor + q5.abs(sqord.index)) % 360) :
+      (((sqord.color / sqord.spread) + sqord.startColor) + q5.abs(sqord.index)) % 360;
 
     if (sqord.fuzzy) {
       q5.noStroke();
