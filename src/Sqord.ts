@@ -153,7 +153,7 @@ let stop = false;
 
 q5.setup = function() {
   q5.createCanvas(q5.windowWidth, q5.windowHeight);
-  q5.colorMode(q5.HSB, 255);
+  q5.colorMode(q5.HSB, 360);
   q5.strokeWeight(q5.height/1200);
 }
 
