@@ -13,18 +13,22 @@ import {
   HStack,
   Button,
   IconButton,
+  Icon,
 } from "@chakra-ui/react"
 import { FaTwitter, FaMediumM, FaDiscord } from 'react-icons/fa'
-import { TbWaveSine, TbInfinity } from 'react-icons/tb'
+import { TbWaveSine, TbInfinity, TbRecordMail, TbRecordMailOff } from 'react-icons/tb'
 
 import './Sqord';
 import MusicPlayer from "./MusicPlayer";
+import RecordTimer from "./RecordTimer";
+import SqordSet from "./SqordSet";
 
 declare global {
   interface Window {
     newHash: string;
     seed: boolean;
     isPause: boolean;
+    record: boolean;
   }
 }
 
@@ -53,6 +57,7 @@ const Home = () => {
 
   const [value, setValue]: any = useState(window.hash);
   const [isPause, setIsPause] = useState(false);
+  const [record, setRecord] = useState(false);
 
   const handleInputChange = (event: any) => {
     setValue(event.target.value);
@@ -100,28 +105,46 @@ const Home = () => {
           align={'flex-start'}
           spacing={1}
         >
+          <MusicPlayer />
           <HStack
             spacing={4}
-            paddingLeft={'10px'}
             justify={'flex-start'}
             align={'flex-start'}
           >
-            <MusicPlayer />
-            <IconButton
-              aria-label="Vibe"
-              icon={isPause ? <TbWaveSine color="#FE0101" size={'20px'} /> : <TbInfinity color="#16FE07" size={'20px'} />}
+            <Button
+              fontSize={'12px'}
+              fontWeight={'bold'}
+              aria-label="Record"
+              leftIcon={record ? <Icon as={TbRecordMailOff} color="#FE0101" boxSize="28px" /> : <Icon as={TbRecordMail} color="#0100FF" boxSize="28px" />}
+              onClick={() => {
+                window.record = !window.record;
+                setRecord(!record);
+              }}
+              backgroundColor="black"
+              _hover={{ backgroundColor: 'gray.800' }}
+              _active={{ backgroundColor: 'gray.900' }}
+            >
+              {record ? 'Stop Recording' : 'Start Recording'}
+            </Button>
+            {record && <RecordTimer />}
+          </HStack>
+          <HStack
+            spacing={4}
+            justify={'flex-start'}
+            align={'flex-start'}
+          >
+            <Button
+              fontSize={'12px'}
+              fontWeight={'bold'}
+              aria-label="Record"
+              leftIcon={isPause ? <Icon as={TbWaveSine} color="#FE0101" boxSize="28px" /> : <Icon as={TbInfinity} color="#16FE07" boxSize="28px" />}
               onClick={handlePause}
               backgroundColor="black"
               _hover={{ backgroundColor: 'gray.800' }}
               _active={{ backgroundColor: 'gray.900' }}
-            />
-            <Text
-              fontSize={'12px'}
-              fontWeight={'bold'}
-              paddingTop={'10px'}
             >
-              {isPause ? 'Vibe' : 'Infinite'}
-            </Text>
+              {isPause ? 'Vibe Mode' : 'Infinite Mode'}
+            </Button>
           </HStack>
         </VStack>
         <VStack
@@ -266,6 +289,7 @@ const Home = () => {
               width={'290px'}
               padding={'4px'}
             />
+            <SqordSet />
           </HStack>
         </VStack>
       </Grid>

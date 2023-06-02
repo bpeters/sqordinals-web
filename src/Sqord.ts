@@ -4,7 +4,8 @@ export {};
 
 declare global {
   var Q5: any;
-  interface Window { hash: string; }
+  var GIF: any;
+  interface Window { hash: string; set: number; }
 }
 
 let q5 = new Q5();
@@ -19,6 +20,8 @@ let moveSteps2 = 0;
 let moveStepsR2 = 0;
 let moveSegments2 = 0;
 let moveSegmentsR2 = 0;
+
+let recording = false;
 
 function lcg() {
   const a = 1664525;
@@ -57,8 +60,8 @@ setInterval(() => {
     moveSegmentsR2 = 0;
 
     sqord2 = makeSqord(generateRandomHexSimple(window.newHash), false);
+    window.set = 0;
     console.log(sqord2.hash);
-    console.log(sqord2)
     sqord2.pause = false;
     window.seed = false;
   }
@@ -69,6 +72,16 @@ setInterval(() => {
 
   if (sqord2 && window.isPause === false && !sqord2.changing) {
     sqord2.pause = false;
+  }
+
+  if (window.record && !recording) {
+    recorder.start();
+    recording = true;
+  }
+
+  if (!window.record && recording) {
+    recorder.stop();
+    recording = false;
   }
 }, 300);
 
@@ -150,11 +163,44 @@ const makeSqord = (hash: any, isNext: boolean) => {
 let sqord2 = makeSqord(generateRandomHexSimple(''), false);
 console.log(sqord2.hash);
 let stop = false;
+let canvas: any;
+let chunks: any = []; // Here we will save all video data
+let stream: any;
+let recorder: any;
 
 q5.setup = function() {
-  q5.createCanvas(q5.windowWidth, q5.windowHeight);
+  canvas = q5.createCanvas(q5.windowWidth, q5.windowHeight);
   q5.colorMode(q5.HSB, 360);
   q5.strokeWeight(q5.height/1200);
+
+  window.set = 0
+
+
+  stream = canvas.captureStream(30);
+  recorder = new MediaRecorder(stream);
+
+  recorder.ondataavailable = function(e: any) {
+    chunks.push(e.data);
+  };
+
+  recorder.onstop = function(e: any) {
+    let blob = new Blob(chunks, { 'type' : 'video/webm' });
+    chunks = [];
+    let videoURL = URL.createObjectURL(blob);
+
+    var a = document.createElement("a");
+
+    // Set the href and download attributes of the anchor
+    a.href = videoURL;
+    a.download = 'sqordinal.webm';
+
+    // Append the anchor into the body. The user will not see this in the document
+    document.body.appendChild(a);
+
+    // Simulate click on the anchor, then remove it
+    a.click();
+    document.body.removeChild(a);
+  };
 }
 
 q5.windowResized = function() {
@@ -296,6 +342,7 @@ q5.draw = function() {
 
     if (!sqord2.pause && q5.abs(sqord2.index) > sqord2.speed * 15) {
       sqord2 = makeSqord(generateRandomHex(), true);
+      window.set++;
       console.log(sqord2.hash);
     }
   }
@@ -343,6 +390,7 @@ q5.draw = function() {
 
     if (sqord2.reverse && moveSegments === q5.floor(sqord2.segments)) {
       sqord2 = makeSqord(generateRandomHex(), true);
+      window.set++;
       console.log(sqord2.hash);
       moveSegmentsR2 = q5.floor(sqord2.segments);
       moveSegments2 = q5.floor(sqord2.segments);
@@ -353,6 +401,7 @@ q5.draw = function() {
 
     } else if (!sqord2.reverse && moveSegmentsR === q5.floor(sqord2.segments)) { 
       sqord2 = makeSqord(generateRandomHex(), true);
+      window.set++;
       console.log(sqord2.hash);
       moveSegmentsR2 = 0;
       moveSegments2 = 0;

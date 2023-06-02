@@ -1,4 +1,4 @@
-import { Slider, SliderTrack, SliderFilledTrack, SliderThumb, IconButton, VStack } from '@chakra-ui/react';
+import { Slider, SliderTrack, SliderFilledTrack, SliderThumb, IconButton, VStack, HStack } from '@chakra-ui/react';
 import { useState, useEffect, useRef } from 'react';
 import { FaPlay, FaPause, FaMusic } from 'react-icons/fa'
 
@@ -61,12 +61,12 @@ const MusicPlayer = () => {
   };
 
   return (
-    <VStack
+    <HStack
       spacing={4}
     >
       <IconButton
         aria-label="Play pause"
-        icon={isPlaying ? <FaPause color="#FE0101" /> : <FaMusic color="#16FE07" />}
+        icon={isPlaying ? <FaPause color="#FE0101" /> : <FaMusic color="#FF00EE" />}
         onClick={handlePlayPause}
         backgroundColor="black"
         _hover={{ backgroundColor: 'gray.800' }}
@@ -79,8 +79,8 @@ const MusicPlayer = () => {
         max={1}
         step={0.01}
         onChange={handleVolumeChange}
-        orientation="vertical"
-        height={'100px'}
+        orientation="horizontal"
+        width={'100px'}
         colorScheme="pink"
       >
         <SliderTrack bg="gray.300">
@@ -88,7 +88,7 @@ const MusicPlayer = () => {
         </SliderTrack>
         <SliderThumb boxSize={3} />
       </Slider>
-    </VStack>
+    </HStack>
   );
 };
 
