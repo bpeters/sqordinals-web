@@ -16,7 +16,7 @@ import {
   Icon,
 } from "@chakra-ui/react"
 import { FaTwitter, FaMediumM, FaDiscord } from 'react-icons/fa'
-import { TbWaveSine, TbInfinity, TbRecordMail, TbRecordMailOff } from 'react-icons/tb'
+import { TbWaveSine, TbInfinity, TbRecordMail, TbRecordMailOff, TbMicrophone, TbMicrophoneOff } from 'react-icons/tb'
 
 import './Sqord';
 import MusicPlayer from "./MusicPlayer";
@@ -54,10 +54,13 @@ const Home = () => {
   const navigate = useNavigate();
   const { search } = useLocation();
   const seed = new URLSearchParams(search).get('seed');
+  const set: string = new URLSearchParams(search).get('set') || '0';
+  const vibe: string = new URLSearchParams(search).get('vibe') || '0';
 
   const [value, setValue]: any = useState(window.hash);
   const [isPause, setIsPause] = useState(false);
   const [record, setRecord] = useState(false);
+  const [newCount, setNewCount] = useState(0);
 
   const handleInputChange = (event: any) => {
     setValue(event.target.value);
@@ -70,6 +73,8 @@ const Home = () => {
       pathname: '/',
       search: `?${createSearchParams({
         seed: value,
+        set: newCount.toString(),
+        vibe: isPause ? '1' : '0',
       })}`,
     }, { replace: true });
   };
@@ -83,15 +88,41 @@ const Home = () => {
   const handlePause = () => {
     setIsPause(!isPause);
     window.isPause = !isPause;
+    navigate({
+      pathname: '/',
+      search: `?${createSearchParams({
+        seed: value,
+        set: newCount.toString(),
+        vibe: !isPause ? '1' : '0',
+      })}`,
+    });
   }
 
   useEffect(() => {
     if (seed && seed !== value) {
       setValue(seed);
+
       window.newHash = seed;
       window.seed = true;
     }
-  }, [seed]);
+
+    if (set && parseInt(set, 10) !== newCount) {
+      setNewCount(parseInt(set, 10));
+      window.updateSet = parseInt(set, 10);
+    }
+
+    if (vibe) {
+      if (vibe === '1') {
+        setIsPause(true);
+        window.isPause = true;
+      }
+
+      if (vibe === '0') {
+        setIsPause(false);
+        window.isPause = false;
+      }
+    }
+  }, [seed, set, vibe]);
 
   return (
     <Box textAlign="center" fontSize="xl">
@@ -107,9 +138,9 @@ const Home = () => {
         >
           <MusicPlayer />
           <HStack
-            spacing={4}
             justify={'flex-start'}
             align={'flex-start'}
+            spacing={4}
           >
             <Button
               fontSize={'12px'}
@@ -217,33 +248,14 @@ const Home = () => {
             paddingLeft={'10px'}
             paddingTop={'6px'}
           >
-            <Text fontSize={'12px'}>
+            <Text fontSize={'12px'} color={'#01FFFF'}>
               Deterministically Infinite Onchain Art, Secured by <b>Bitcoin</b>
-            </Text>
-          </HStack>
-          <HStack
-            spacing={4}
-            paddingLeft={'10px'}
-            _hover={{
-              cursor: 'pointer',
-              opacity: 0.8,
-            }}
-            onClick={() => openInNewTab('https://www.squiggledao.com/learn')}
-          >
-            <Text
-              fontSize={'10px'}
-              color={'#01FFFF'}
-            >
-              Inspired by <b>Chromie Squiggles</b> by Erick Calderon "Snowfro"
             </Text>
           </HStack>
           <HStack
             spacing={2}
             paddingLeft={'10px'}
           >
-            <Text fontSize={'8px'}>
-              v1
-            </Text>
             <Button
               fontSize={'12px'}
               fontWeight={'bold'}
@@ -267,6 +279,7 @@ const Home = () => {
             >
               Seed
             </Button>
+            <SqordSet />
             <Input 
               value={value}
               onChange={handleInputChange}
@@ -289,7 +302,32 @@ const Home = () => {
               width={'290px'}
               padding={'4px'}
             />
-            <SqordSet />
+            <Input 
+              value={newCount}
+              type={'number'}
+              onChange={(event: any) => {
+                setNewCount(event.target.value);
+                window.updateSet = event.target.value;
+              }}
+              onKeyDown={handleKeyDown}
+              backgroundColor="black"
+              color="white"
+              borderColor="transparent"
+              borderWidth={1}
+              borderRadius={0}
+              _focus={{
+                borderColor: 'transparent',
+                borderBottomColor: "white",
+                boxShadow: "none",
+              }}
+              _hover={{
+                borderBottomColor: "white",
+                boxShadow: "none",
+              }}
+              fontSize={'10px'}
+              width={'40px'}
+              padding={'4px'}
+            />
           </HStack>
         </VStack>
       </Grid>

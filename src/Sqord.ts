@@ -5,7 +5,7 @@ export {};
 declare global {
   var Q5: any;
   var GIF: any;
-  interface Window { hash: string; set: number; }
+  interface Window { hash: string; set: number; updateSet: number; }
 }
 
 let q5 = new Q5();
@@ -38,6 +38,7 @@ function generateRandomHex() {
       result += characters.charAt(Math.floor(lcg() * characters.length));
   }
   lcg_index++
+  window.set++;
   return '0x' + result;
 }
 
@@ -60,8 +61,19 @@ setInterval(() => {
     moveSegmentsR2 = 0;
 
     sqord2 = makeSqord(generateRandomHexSimple(window.newHash), false);
-    window.set = 0;
+
+    if (window.updateSet > 0) {
+      for (let i = 1; i <= window.updateSet; i++) {
+        sqord2 = makeSqord(generateRandomHex(), true);
+      }
+
+      window.set = window.updateSet;
+    } else {
+      window.set = 0;
+    }
+
     console.log(sqord2.hash);
+
     sqord2.pause = false;
     window.seed = false;
   }
@@ -141,6 +153,10 @@ const makeSqord = (hash: any, isNext: boolean) => {
       sqord.bold = sqord2.bold;
       sqord.segmented = sqord2.segmented;
       sqord.fuzzy = sqord2.fuzzy;
+      sqord.flowers = sqord2.flowers;
+      sqord.squared = sqord2.squared;
+      sqord.creepy = sqord2.creepy;
+      sqord.dodge = sqord2.creepy;
     }
   } else {
     sqord.amp = ((sqord.decPairs[2] % 128) / 100);
@@ -165,18 +181,16 @@ console.log(sqord2.hash);
 let stop = false;
 let canvas: any;
 let chunks: any = []; // Here we will save all video data
-let stream: any;
 let recorder: any;
 
 q5.setup = function() {
+  window.set = 0;
   canvas = q5.createCanvas(q5.windowWidth, q5.windowHeight);
   q5.colorMode(q5.HSB, 360);
   q5.strokeWeight(q5.height/1200);
 
-  window.set = 0
+  let stream = canvas.captureStream(30);
 
-
-  stream = canvas.captureStream(30);
   recorder = new MediaRecorder(stream);
 
   recorder.ondataavailable = function(e: any) {
@@ -342,7 +356,6 @@ q5.draw = function() {
 
     if (!sqord2.pause && q5.abs(sqord2.index) > sqord2.speed * 15) {
       sqord2 = makeSqord(generateRandomHex(), true);
-      window.set++;
       console.log(sqord2.hash);
     }
   }
@@ -389,20 +402,22 @@ q5.draw = function() {
     }
 
     if (sqord2.reverse && moveSegments === q5.floor(sqord2.segments)) {
-      sqord2 = makeSqord(generateRandomHex(), true);
-      window.set++;
-      console.log(sqord2.hash);
+      if (!sqord2.pause) {
+        sqord2 = makeSqord(generateRandomHex(), true);
+        console.log(sqord2.hash);
+      }
+
       moveSegmentsR2 = q5.floor(sqord2.segments);
       moveSegments2 = q5.floor(sqord2.segments);
       moveStepsR2 = sqord2.steps;
       moveSteps2 = sqord2.steps;
       sqord2.reverse = false;
       sqord2.start = true;
-
     } else if (!sqord2.reverse && moveSegmentsR === q5.floor(sqord2.segments)) { 
-      sqord2 = makeSqord(generateRandomHex(), true);
-      window.set++;
-      console.log(sqord2.hash);
+      if (!sqord2.pause) {
+        sqord2 = makeSqord(generateRandomHex(), true);
+        console.log(sqord2.hash);
+      }
       moveSegmentsR2 = 0;
       moveSegments2 = 0;
       moveStepsR2 = 0;
@@ -465,8 +480,7 @@ q5.draw = function() {
       moveStepsR2 = sqord2.steps;
     }
 
-    if (!sqord2.pause && sqord2.reverse && moveSegments2 >= q5.floor(sqord2.segments)) {
-      sqord2.pause = true;
+    if (!sqord2.changing && sqord2.reverse && moveSegments2 >= q5.floor(sqord2.segments)) {
       sqord2.changing = true;
 
       setTimeout(() => {
@@ -478,11 +492,9 @@ q5.draw = function() {
           sqord2.reverse = false
         }
         sqord2.start = false;
-        sqord2.pause = false;
         sqord2.changing = false;
       }, 10000);
-    } else if (!sqord2.pause && !sqord2.reverse && moveSegmentsR2 <= 0) {
-      sqord2.pause = true;
+    } else if (!sqord2.changing && !sqord2.reverse && moveSegmentsR2 <= 0) {
       sqord2.changing = true;
 
       setTimeout(() => {
@@ -494,7 +506,6 @@ q5.draw = function() {
           sqord2.reverse = true;
         }
         sqord2.start = false;
-        sqord2.pause = false;
         sqord2.changing = false;
       }, 10000);
     }

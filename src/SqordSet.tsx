@@ -1,4 +1,4 @@
-import { Text } from '@chakra-ui/react';
+import { Text, Input, HStack } from '@chakra-ui/react';
 import { useState, useEffect, useRef } from 'react';
 
 const SqordSet = () => {
@@ -7,19 +7,14 @@ const SqordSet = () => {
   useEffect(() => {
     const timerId = setInterval(() => {
       setCount(window.set);
-    }, 300);
+    }, 100);
 
     return () => clearInterval(timerId);
   }, []);
 
   return (
-    <Text
-      fontSize={'12px'}
-      fontWeight={'bold'}
-      paddingTop={'4px'}
-      paddingBottom={'4px'}
-    >
-      {count}
+    <Text fontSize={'8px'}>
+      [{count}]
     </Text>
   );
 };
