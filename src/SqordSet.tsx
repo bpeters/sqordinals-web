@@ -14,7 +14,7 @@ const SqordSet = () => {
 
   return (
     <Text fontSize={'8px'}>
-      [{count}]
+      [ {count} ]
     </Text>
   );
 };

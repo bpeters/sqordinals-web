@@ -1,19 +1,10 @@
 import { useState, useEffect, useRef } from "react"
-import { useNavigate, useLocation, createSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import _ from 'lodash';
-// import p5 from 'p5';
 import {
   Box,
   Text,
-  Input,
-  VStack,
-  Grid,
-  Image,
-  HStack,
-  Button,
-  Icon,
 } from "@chakra-ui/react"
-import { FaTwitter, FaMediumM, FaDiscord } from 'react-icons/fa'
 
 declare global {
   var Q5: any;
@@ -148,6 +139,8 @@ function rnd(sqord: any) {
 export const GodSeed = ({ seed, size }: any) => {
   const myCanvas: any = useRef();
   const myP5: any = useRef();
+  const navigate = useNavigate();
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     if (!myP5.current) {
@@ -157,14 +150,27 @@ export const GodSeed = ({ seed, size }: any) => {
 
       let sqord2 = makeSqord(seed.hash, false, null, p);
 
+      p.mouseClicked = function () {
+        sqord2.pause = !sqord2.pause;
+
+        if (sqord2.pause) {
+          p.fill(255);
+        }
+      }
+
       p.setup = function () {
         const canvas = p.createCanvas(size, size * 0.75);
 
         canvas.style.position = 'relative';
         myCanvas.current.appendChild(canvas);
 
+        canvas.ontouchstart = () => {};
+        canvas.ontouchmove = () => {};
+        canvas.ontouchend = () => {};
+
         p.colorMode(p.HSB, 360);
         p.strokeWeight(p.height / 1200);
+        p.pixelDensity(2);
       };
 
       p.draw = function () {
@@ -459,12 +465,42 @@ export const GodSeed = ({ seed, size }: any) => {
 
   return (
     <Box
-      width={`${size}px`}
-      height={`${size * 0.75}px`}
+      position={'relative'}
+      width={`${size + 20}px`}
+      height={`${(size * 0.75) + 20}px`}
       backgroundColor={'black'}
-      padding={0}
+      padding={'10px'}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <div ref={myCanvas} />
+      <Box
+        position="absolute"
+        bottom="10px"
+        width={'100%'}
+        paddingBottom={'4px'}
+        textAlign={'center'}
+      >
+      <Text
+        opacity={isHovered ? 1 : 0}
+        visibility={isHovered ? 'visible' : 'hidden'}
+        transition="opacity 0.3s linear, visibility 0.3s linear"
+        color={seed.uncommon ? '#E83A89' : 'white'}
+        zIndex={1000}
+        fontWeight={'bold'}
+        _hover={{
+          cursor: 'pointer',
+          opacity: 0.8,
+          textDecoration: 'underline',
+        }}
+        onClick={() => {
+          window.location.assign(`/sqordinal/${seed.index}`);
+        }}
+      >
+        {seed.name}
+      </Text>
+      </Box>
+
     </Box>
   )
 };

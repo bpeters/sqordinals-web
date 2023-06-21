@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import ReactGA from 'react-ga';
 import {
   ChakraProvider,
@@ -13,7 +13,8 @@ import {
 import { FaTwitter, FaMediumM, FaDiscord } from 'react-icons/fa'
 
 import { Home } from "./Home";
-import { Discover } from "./Discover";
+import { Sqordinal } from "./Sqordinal";
+import { Sqordinal3D } from "./Sqordinal3D";
 import MusicPlayer from "./MusicPlayer";
 
 ReactGA.initialize('G-S8026RGDNM');
@@ -35,6 +36,8 @@ const openInNewTab = (url: string) => {
 }
 
 const Header = () => {
+  const navigate = useNavigate();
+
   return (
     <VStack
       zIndex={100000}
@@ -47,7 +50,7 @@ const Header = () => {
       justify={'flex-start'}
       align={'flex-start'}
       spacing={1}
-      backgroundColor={'black'}
+      // backgroundColor={'black'}
       width={'100vw'}
     >
       <HStack
@@ -58,6 +61,12 @@ const Header = () => {
           src="/sqordinals.gif"
           alt="Sqordinals"
           width="140px"
+          _hover={{
+            cursor: 'pointer',
+          }}
+          onClick={() => {
+            window.location.assign(`/`);
+          }}
         />
         <Box
           _hover={{
@@ -132,7 +141,7 @@ const Footer = () => {
       justify={'flex-start'}
       align={'flex-start'}
       spacing={1}
-      backgroundColor={'black'}
+      // backgroundColor={'black'}
       width={'100vw'}
       opacity={1}
     >
@@ -144,12 +153,13 @@ const Footer = () => {
 export const App = () => {
   return (
     <ChakraProvider theme={theme}>
-      <Header />
-      <Footer />
       <Router>
+        <Header />
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="sqordinal/:id" element={<Sqordinal3D />} />
         </Routes>
+        <Footer />
       </Router>
     </ChakraProvider>
   );
