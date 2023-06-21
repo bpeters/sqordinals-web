@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import _ from 'lodash';
 import * as THREE from 'three';
+import { ArcballControls } from "three/examples/jsm/controls/ArcballControls";
 import {
   Box,
   Text,
@@ -34,8 +35,6 @@ declare global {
   var Q5: any;
 }
 
-let renderCount = 0;
-
 export const Sqordinal3D = () => {
   const { search } = useLocation();
   const set: string = new URLSearchParams(search).get('set') || '0';
@@ -62,16 +61,33 @@ export const Sqordinal3D = () => {
   useEffect(() => {
     if (!mySqord.current && seed) {
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.x = window.innerWidth / 4;
-      camera.position.z = 560;
-      // let degrees = 45;
-      // let radians = degrees * (Math.PI / 180);
-      // camera.rotation.x += radians; // rotate 45 degrees to the right
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 3000);
       const renderer = new THREE.WebGLRenderer();
       renderer.setSize(window.innerWidth, window.innerHeight);
-  
+
       myRender.current.appendChild(renderer.domElement);
+
+      const controls = new ArcballControls( camera, document.body, scene );
+
+      controls.addEventListener('change', function () {
+        renderer.render( scene, camera );
+      });
+
+      camera.position.x = 0;
+      camera.position.z = 560;
+      controls.update();
+
+      controls.setGizmosVisible(false);
+      controls.maxDistance = 2000;
+
+      // Create a directional light
+      const light = new THREE.DirectionalLight(0xffffff, 0.2);
+      light.position.set(0, 500, 0); 
+      scene.add(light);
+
+      // Create an ambient light
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+      scene.add(ambientLight);
 
       mySqord.current = makeSqord(seed.hash, false, null);
 
@@ -93,13 +109,19 @@ export const Sqordinal3D = () => {
 
       console.log(mySqord.current.fuzzy, mySqord.current.slinky, mySqord.current.pipe, mySqord.current.segmented, mySqord.current.bold, mySqord.current.creepy, mySqord.current.flowers)
 
+      let group = new THREE.Group();
+
       for (let j = 0; j < (mySqord.current.segments - 1); j++) {
         for (let i = 0; i <= (mySqord.current.steps); i++) {
-          displaySqord(mySqord, scene, p, j, i);
+          displaySqord(mySqord, scene, group, p, j, i);
         }
 
         mySqord.current.seed = parseInt(mySqord.current.hash.slice(0, 16), 16);
       }
+
+      scene.add(group);
+
+      group.position.x -= window.innerWidth / 4;
 
       mySqord.current.index = mySqord.current.reverse ? (mySqord.current.index - mySqord.current.speed) : mySqord.current.index + mySqord.current.speed;
 

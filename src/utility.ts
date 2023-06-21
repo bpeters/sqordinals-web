@@ -153,6 +153,7 @@ export const makeSqord = (hash: any, isNext: boolean, sqord2: any) => {
 export const displaySqord = (
   mySqord: any,
   scene: any,
+  group: any,
   p: any,
   j: any,
   i: any,
@@ -178,7 +179,7 @@ export const displaySqord = (
 
   let x = p.curvePoint(x1, x2, x3, x4, t);
   let y = p.curvePoint(y1, y2, y3, y4, t) * -1;
-  let z = -1 * (j + 1) * (i + 1)
+  let z = -2 * ((sqord.segments * sqord.amp) + i + 1)
 
   let hue = sqord.reverse ?
     360 - (((sqord.color / sqord.spread) + sqord.startColor + p.abs(sqord.index)) % 360) :
@@ -201,8 +202,8 @@ export const displaySqord = (
 
     let curve = new THREE.QuadraticBezierCurve3(
       new THREE.Vector3( x0, y0, z ), // control point
-      new THREE.Vector3( x, y, z ), // start point
-      new THREE.Vector3( x0, y0, z ) // end point
+      new THREE.Vector3( x, y, z * 1 ), // start point
+      new THREE.Vector3( x0, y0, z * (sqord.creepy ? 1 : 1 )) // end point
     );
 
     let points = curve.getPoints( 3 );
@@ -218,7 +219,8 @@ export const displaySqord = (
 
     let line = new THREE.Line(geometry, material);
 
-    scene.add(line);
+    group.add(line);
+    // scene.add(line);
     mySqord.current.lines.push({
       i,
       j,
@@ -244,7 +246,7 @@ export const displaySqord = (
       geometry = new THREE.SphereGeometry(size);
     }
 
-    material = new THREE.MeshBasicMaterial();
+    material = new THREE.MeshStandardMaterial();
     if (hue) {
       material.color.setHSL(hue / 360, 1, 0.5);
     } else {
@@ -255,7 +257,8 @@ export const displaySqord = (
     object = new THREE.Mesh(geometry, material);
 
     object.position.set(fuzzX, fuzzY, fuzzZ);
-    scene.add(object);
+    group.add(object);
+    // scene.add(object);
     mySqord.current.objects.push({
       i,
       j,
@@ -265,7 +268,7 @@ export const displaySqord = (
     let size = height / 35;
 
     if (sqord.slinky && sqord.pipe) {
-      material = new THREE.MeshBasicMaterial({ color: new THREE.Color('black') });
+      material = new THREE.MeshStandardMaterial({ color: new THREE.Color('black') });
 
       let outlineGeometry;
       
@@ -275,12 +278,13 @@ export const displaySqord = (
         outlineGeometry = new THREE.SphereGeometry(size * 1.2);
       }
 
-      let outlineMaterial = new THREE.MeshBasicMaterial({ color: new THREE.Color('black'), side: THREE.BackSide });
+      let outlineMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color('black'), side: THREE.BackSide });
       let outlineSphere = new THREE.Mesh(outlineGeometry, outlineMaterial);
 
       outlineSphere.position.set(x, y, z);
 
-      scene.add(outlineSphere);
+      group.add(outlineSphere);
+      // scene.add(outlineSphere);
 
       if (sqord.squared) {
         geometry = new THREE.BoxGeometry(size * 2, size * 2, size * 2);
@@ -290,13 +294,14 @@ export const displaySqord = (
 
       let objectEmpty = new THREE.Mesh(geometry, material);
 
-      scene.add(objectEmpty);
+      group.add(objectEmpty);
+      // scene.add(objectEmpty);
     }
 
     if (sqord.segmented && !sqord.slinky && !sqord.bold) {
       if (i % sqord.div === 0 || i === 0 || i === (sqord.steps) - 1) {
         const grayValue = sqord.decPairs[25] / 255;
-        material = new THREE.MeshBasicMaterial();
+        material = new THREE.MeshStandardMaterial();
         material.color = new THREE.Color(grayValue, grayValue, grayValue);
         material.transparent = true;
         material.opacity = 0.1;
@@ -310,13 +315,14 @@ export const displaySqord = (
         object = new THREE.Mesh(geometry, material);
 
         object.position.set(x, y, z);
-        scene.add(object);
+        group.add(object);
+        // scene.add(object);
       }
     }
 
     if (sqord.slinky) {
       if (i === 0 || i === (sqord.steps) - 1) {
-        material = new THREE.MeshBasicMaterial();
+        material = new THREE.MeshStandardMaterial();
         if (hue) {
           material.color.setHSL(hue / 360, 1, 0.5);
         } else {
@@ -324,7 +330,7 @@ export const displaySqord = (
         }
       } else {
         isBlack = true;
-        material = new THREE.MeshBasicMaterial({
+        material = new THREE.MeshStandardMaterial({
           color: new THREE.Color('black'),
           side: THREE.FrontSide
         });
@@ -338,7 +344,7 @@ export const displaySqord = (
         outlineGeometry = new THREE.SphereGeometry(size * 1.2);
       }
 
-      let outlineMaterial = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
+      let outlineMaterial = new THREE.MeshStandardMaterial({ side: THREE.BackSide });
 
       if (hue) {
         outlineMaterial.color.setHSL(hue / 360, 1, 0.5);
@@ -350,14 +356,15 @@ export const displaySqord = (
 
       outline.position.set(x, y, z);
 
-      scene.add(outline);
+      group.add(outline);
+      // scene.add(outline);
       mySqord.current.outlines.push({
         i,
         j,
         outline,
       });
     } else {
-      material = new THREE.MeshBasicMaterial({ side: THREE.BackSide });
+      material = new THREE.MeshStandardMaterial({ side: THREE.BackSide });
 
       if (hue) {
         material.color.setHSL(hue / 360, 1, 0.5);
@@ -375,7 +382,8 @@ export const displaySqord = (
     object = new THREE.Mesh(geometry, material);
 
     object.position.set(x, y, z);
-    scene.add(object);
+    group.add(object);
+    // scene.add(object);
 
     if (!isBlack) {
       mySqord.current.objects.push({
