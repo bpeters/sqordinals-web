@@ -30,6 +30,9 @@ import {
 
 let chunks: any = []; // Here we will save all video data
 let recorder: any;
+let clock = new THREE.Clock();
+let isRotating = false;  // Start with rotation enabled
+
 
 declare global {
   var Q5: any;
@@ -80,18 +83,14 @@ export const Sqordinal3D = () => {
       controls.setGizmosVisible(false);
       controls.maxDistance = 2000;
 
-      // Create a directional light
-      const light = new THREE.DirectionalLight(0xffffff, 0.2);
-      light.position.set(0, 500, 0); 
-      scene.add(light);
+      const hemiLight = new THREE.HemisphereLight(0x000000, 0xffffff, 0.2);
+      hemiLight.position.set(200, 200, 0);
+      scene.add(hemiLight);
 
-      // Create an ambient light
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
       scene.add(ambientLight);
 
       mySqord.current = makeSqord(seed.hash, false, null);
-
-      window.set = 0;
   
       const p = new Q5();
 
@@ -107,9 +106,9 @@ export const Sqordinal3D = () => {
       mySqord.current.color = 0;
       mySqord.current.div = Math.floor(p.map(Math.round(mySqord.current.decPairs[24]), 0, 230, 3, 20));
 
-      console.log(mySqord.current.fuzzy, mySqord.current.slinky, mySqord.current.pipe, mySqord.current.segmented, mySqord.current.bold, mySqord.current.creepy, mySqord.current.flowers)
-
       let group = new THREE.Group();
+
+      console.log(mySqord.current);
 
       for (let j = 0; j < (mySqord.current.segments - 1); j++) {
         for (let i = 0; i <= (mySqord.current.steps); i++) {
@@ -121,13 +120,42 @@ export const Sqordinal3D = () => {
 
       scene.add(group);
 
-      group.position.x -= window.innerWidth / 4;
+      let box = new THREE.Box3().setFromObject( group );
+      let center = box.getCenter( new THREE.Vector3() );
+
+      group.position.x = center.x;
+      group.position.y = center.y;
+      group.position.z = center.z;
+
+      group.children.forEach((child) => {
+        child.position.x -= center.x;
+        child.position.y -= center.y;
+        child.position.z -= center.z;
+      });
 
       mySqord.current.index = mySqord.current.reverse ? (mySqord.current.index - mySqord.current.speed) : mySqord.current.index + mySqord.current.speed;
 
+      document.body.addEventListener("keydown", function (event) {
+        if (event.code === 'Space') {
+          isRotating = !isRotating;
+        }
+      }, false);
 
       const animate = function () {
         requestAnimationFrame(animate);
+
+        // ambientLight.intensity = (Math.sin(performance.now() * 0.001) + 1.0) * 0.5;
+        // light.intensity = (Math.cos(performance.now() * 0.001) + 1.0) * 0.5;
+        // hemiLight.intensity = !hemiLight.intensity ? 1 : 0;
+
+        if (isRotating) {
+          group.rotation.y += mySqord.current.speed / 100 * mySqord.current.rotateY;
+          group.rotation.x += mySqord.current.speed / 100 * mySqord.current.rotateX;
+          group.rotation.z += mySqord.current.speed / 100 * mySqord.current.rotateZ;
+        }
+
+        controls.target.copy( group.position );
+        controls.update();
 
         mySqord.current.color = 0;
 
@@ -149,6 +177,11 @@ export const Sqordinal3D = () => {
                 foundLine.line.material.color = new THREE.Color(gray, gray, gray);
               }
 
+              if (sqord.flipper) {
+                foundLine.line.material.transparent = true;
+                foundLine.line.material.opacity = (Math.sin(performance.now() * 0.001) * 0.5) + 0.55;
+              }
+
               foundLine.line.material.needsUpdate = true;
               mySqord.current.color++;
             }
@@ -163,6 +196,11 @@ export const Sqordinal3D = () => {
                 foundOutline.outline.material.color = new THREE.Color(gray, gray, gray);
               }
 
+              if (sqord.flipper) {
+                foundOutline.outline.material.transparent = true;
+                foundOutline.outline.material.opacity = (Math.sin(performance.now() * 0.001) * 0.5) + 0.6;
+              }
+
               foundOutline.outline.material.needsUpdate = true;
               mySqord.current.color++;
             }
@@ -175,6 +213,11 @@ export const Sqordinal3D = () => {
               } else {
                 let gray = ((mySqord.current.color + p.abs(sqord.index)) % 255) / 255;
                 foundObject.object.material.color = new THREE.Color(gray, gray, gray);
+              }
+
+              if (sqord.flipper) {
+                foundObject.object.material.transparent = true;
+                foundObject.object.material.opacity = (Math.cos(performance.now() * 0.001) * 0.5) + 0.6;
               }
 
               foundObject.object.material.needsUpdate = true;
@@ -198,8 +241,6 @@ export const Sqordinal3D = () => {
         //   while(scene.children.length > 0){ 
         //     scene.remove(scene.children[0]); 
         //   }
-
-        //   mySqord.current = makeSqord('', true, generateRandomHex(mySqord.current));
         // }
 
         renderer.render(scene, camera);
@@ -216,95 +257,6 @@ export const Sqordinal3D = () => {
       width={'100vw'}
       height={'100vh'}
     >
-      <VStack
-        zIndex={100000}
-        position={'fixed'}
-        top={'90px'}
-        left={0}
-        paddingLeft={'28px'}
-        justify={'flex-start'}
-        align={'flex-start'}
-        spacing={2}
-        width={'100vw'}
-      >
-        <HStack
-          spacing={2}
-          justify={'flex-start'}
-          align={'center'}
-        >
-          <Text
-            color={seed.uncommon ? '#E83A89' : 'white'}
-            fontWeight={'bold'}
-          >
-            {_.get(seed, 'name', '')}
-          </Text>
-          <Box
-            _hover={{
-              cursor: 'pointer',
-              opacity: 0.8,
-            }}
-            onClick={() => openInNewTab(`https://magiceden.io/ordinals/item-details/${seed.id}`)}
-          >
-            <Image
-              src="/magic-eden.svg"
-              alt="MagicEden"
-              width="30px"
-            />
-          </Box>
-          <SqordSet />
-        </HStack>
-        <HStack
-          justify={'flex-start'}
-          align={'flex-start'}
-          paddingTop={'10px'}
-        >
-          <Button
-            fontSize={'12px'}
-            fontWeight={'bold'}
-            aria-label="Record"
-            leftIcon={isPause ? <Icon as={TbWaveSine} color="#FE0101" boxSize="28px" /> : <Icon as={TbInfinity} color="#16FE07" boxSize="28px" />}
-            onClick={() => {
-              mySqord.current.pause = !mySqord.current.pause;
-              setIsPause(!isPause)
-              navigate({
-                pathname: `/sqordinal/${id}`,
-                search: `?${createSearchParams({
-                  set: value,
-                  vibe: isPause ? '0' : '1',
-                })}`,
-              }, { replace: true });
-            }}
-            backgroundColor="black"
-            _hover={{ backgroundColor: 'gray.800' }}
-            _active={{ backgroundColor: 'gray.900' }}
-          >
-            {isPause ? 'Vibe Mode' : 'Infinite Mode'}
-          </Button>
-          <Button
-            fontSize={'12px'}
-            fontWeight={'bold'}
-            aria-label="Record"
-            leftIcon={record ? <Icon as={TbRecordMailOff} color="#FE0101" boxSize="28px" /> : <Icon as={TbRecordMail} color="#0100FF" boxSize="28px" />}
-            onClick={() => {
-              if (recorder) {
-                if (!record) {
-                  recorder.start(1000);
-                } else {
-                  recorder.stop();
-                }
-              }
-
-              setRecord(!record);
-            }}
-            backgroundColor="black"
-            _hover={{ backgroundColor: 'gray.800' }}
-            _active={{ backgroundColor: 'gray.900' }}
-          >
-            {record ? 'Stop Recording' : 'Start Recording'}
-          </Button>
-          {record && <RecordTimer />}
-        </HStack>
-      </VStack>
       <div style={{ height: '100vh', width: '100vw'}} ref={myRender} />
     </VStack>
   )

@@ -63,6 +63,7 @@ export const makeSqord = (hash: any, isNext: boolean, sqord2: any) => {
     objects: [],
     lines: [],
     outlines: [],
+    blanks: [],
   }
 
   if (!sqord2) {
@@ -104,7 +105,10 @@ export const makeSqord = (hash: any, isNext: boolean, sqord2: any) => {
   sqord.creepy = sqord.decPairs[7] < 15;
   sqord.dodge = sqord.decPairs[8] < 15;
   sqord.squared = sqord.decPairs[6] < 15;
-  sqord.spread = sqord.decPairs[28] < 15 ? 2 : mapValue(sqord.decPairs[28], 0, 255, 5, 50);
+  sqord.spread = (sqord.decPairs[28] < 15 ? 2 : mapValue(sqord.decPairs[28], 0, 255, 5, 50)) || 0;
+  sqord.rotateX = (sqord.decPairs[15] < 128 ? -1 * sqord.decPairs[15] / 255 : sqord.decPairs[15] / 255) || 0;
+  sqord.rotateY = (sqord.decPairs[16] < 128 ? -1 * sqord.decPairs[16] / 255 : sqord.decPairs[15] / 255) || 0;
+  sqord.rotateZ = (sqord.decPairs[14] < 128 ? -1 * sqord.decPairs[14] / 255 : sqord.decPairs[14] / 255) || 0;
   sqord.index = 0;
   sqord.pause = false;
 
@@ -172,10 +176,10 @@ export const displaySqord = (
   let x2 = width / sqord.segments / sqord.wt * (j + 1);
   let x3 = width / sqord.segments / sqord.wt * (j + 2);
   let x4 = width / sqord.segments / sqord.wt * (j + 3);
-  let y1 = mapValue(sqord.decPairs[j], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp;
-  let y2 = mapValue(sqord.decPairs[j + 1], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp;
-  let y3 = mapValue(sqord.decPairs[j + 2], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp;
-  let y4 = mapValue(sqord.decPairs[j + 3], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp;
+  let y1 = mapValue(sqord.decPairs[j], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp || 0;
+  let y2 = mapValue(sqord.decPairs[j + 1], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp || 0;
+  let y3 = mapValue(sqord.decPairs[j + 2], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp || 0;
+  let y4 = mapValue(sqord.decPairs[j + 3], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp || 0;
 
   let x = p.curvePoint(x1, x2, x3, x4, t);
   let y = p.curvePoint(y1, y2, y3, y4, t) * -1;
@@ -285,6 +289,11 @@ export const displaySqord = (
 
       group.add(outlineSphere);
       // scene.add(outlineSphere);
+      mySqord.current.blanks.push({
+        i,
+        j,
+        blank: outlineSphere,
+      });
 
       if (sqord.squared) {
         geometry = new THREE.BoxGeometry(size * 2, size * 2, size * 2);
@@ -296,6 +305,11 @@ export const displaySqord = (
 
       group.add(objectEmpty);
       // scene.add(objectEmpty);
+      mySqord.current.blanks.push({
+        i,
+        j,
+        blank: objectEmpty,
+      });
     }
 
     if (sqord.segmented && !sqord.slinky && !sqord.bold) {
@@ -317,6 +331,11 @@ export const displaySqord = (
         object.position.set(x, y, z);
         group.add(object);
         // scene.add(object);
+        mySqord.current.blanks.push({
+          i,
+          j,
+          blank: object,
+        });
       }
     }
 
@@ -376,7 +395,7 @@ export const displaySqord = (
     if (sqord.squared) {
       geometry = new THREE.BoxGeometry((sqord.bold && !sqord.slinky ? size * 3 : size) * 2, (sqord.bold && !sqord.slinky ? size * 3 : size) * 2, (sqord.bold && !sqord.slinky ? size * 3 : size) * 2);
     } else {
-      geometry = new THREE.SphereGeometry((sqord.bold && !sqord.slinky ? size * 3 : size));
+      geometry = new THREE.SphereGeometry(sqord.bold && !sqord.slinky ? size * 3 : size);
     }
 
     object = new THREE.Mesh(geometry, material);
@@ -390,6 +409,12 @@ export const displaySqord = (
         i,
         j,
         object,
+      });
+    } else {
+      mySqord.current.blanks.push({
+        i,
+        j,
+        blank: object,
       });
     }
   }
