@@ -151,6 +151,8 @@ export const Sqordinal3D = () => {
         sqord.seed = parseInt(sqord.hash.slice(0, 16), 16);
       }
 
+      sqord.counter = !sqord.reverse ? sqord.allObjects.length - 1 : 0;
+
       scene.add(group);
 
       updateGroupCenter(group);
@@ -175,177 +177,66 @@ export const Sqordinal3D = () => {
 
         sqord.color = 0;
 
-        const maxArrayLength = Math.max(sqord.lines.length, sqord.outlines.length, sqord.objects.length, sqord.blanks.length);
-
         if (!sqord.start && !sqord.flipper) {
-          if (sqord.counter < sqord.lines.length) {
-            sqord.lines[sqord.counter].line.visible = false;
-          }
+          const allObject = sqord.allObjects[sqord.counter];
+          allObject[allObject.type].visible = false;
 
-          if (sqord.counter < sqord.outlines.length) {
-            sqord.outlines[sqord.counter].outline.visible = false;
-          }
-        
-          if (sqord.counter < sqord.objects.length) {
-            sqord.objects[sqord.counter].object.visible = false;
-          }
+          sqord.counter = !sqord.reverse ? sqord.counter - 1 : sqord.counter + 1;
 
-          if (sqord.counter < sqord.blanks.length) {
-            sqord.blanks[sqord.counter].blank.visible = false;
-          }
-
-          sqord.counter++;
-
-          if (sqord.reverse && sqord.counter > maxArrayLength) {
-            sqord.moveSegmentsR2 = p.floor(sqord.segments);
-            sqord.moveSegments2 = p.floor(sqord.segments);
-            sqord.moveStepsR2 = sqord.steps;
-            sqord.moveSteps2 = sqord.steps;
-            sqord.reverse = false;
-            sqord.start = true;
-          } else if (!sqord.reverse && sqord.counter < 0) { 
-            sqord.moveSegmentsR2 = 0;
-            sqord.moveSegments2 = 0;
-            sqord.moveStepsR2 = 0;
-            sqord.moveSteps2 = 0;
-            sqord.reverse = true;
+          if (
+            (!sqord.reverse && sqord.counter === 0) ||
+            (sqord.reverse && sqord.counter === sqord.allObjects.length - 1)
+          ) {
+            sqord.reverse = !sqord.reverse;
             sqord.start = true;
           }
         }
 
-        if (sqord.start && !sqord.flipper) {
-          for (let j = sqord.moveSegmentsR2; j < sqord.moveSegments2; j++) {
-            let dSteps = 0;
-            let dStepsR = 0;
-      
-            if (!sqord.reverse) {
-              if (j > sqord.moveSegmentsR2) {
-                dStepsR = 0;
-              } else {
-                dStepsR = sqord.moveStepsR2;
-              }
-      
-              dSteps = sqord.moveSteps2;
-            } else {
-              if (j === sqord.moveSegments2 - 1) {
-                dSteps = sqord.moveSteps2;
-              } else {
-                dSteps = sqord.steps;
-              }
-            }
+        if (sqord.start && !sqord.flipper && !sqord.changing) {
+          const allObject = sqord.allObjects[sqord.counter];
+          allObject[allObject.type].visible = true;
 
-            for (let i = dStepsR; i <= dSteps; i++) {
-              showObjects(sqord, j, i, true)
-            }
-          }
-
-          if (p.floor(p.abs(sqord.index)) % 1 === 0 && !sqord.stop) {
-            if (sqord.reverse) {
-              if (sqord.moveSegments2 < sqord.segments) {
-                sqord.moveSteps2++;
-              }
-            } else {
-              if (sqord.moveSegmentsR2 >= 0) {
-                sqord.moveStepsR2--;
-              }
-            }      
-          }
-
-          if (sqord.reverse && sqord.moveSteps2 === sqord.steps && sqord.moveSegments2 < sqord.segments) {
-            sqord.moveSegments2++;
-            sqord.moveSteps2 = 0;
-          }
-
-          if (!sqord.reverse && sqord.moveStepsR2 === 0 && sqord.moveSegmentsR2 >= 0) {
-            sqord.moveSegmentsR2--;
-            sqord.moveStepsR2 = sqord.steps;
-          }
+          sqord.counter = !sqord.reverse ? sqord.counter - 1 : sqord.counter + 1;
 
           if (
-            (!sqord.changing && sqord.reverse && sqord.moveSegments2 >= p.floor(sqord.segments)) ||
-            (!sqord.changing && !sqord.reverse && sqord.moveSegmentsR2 <= 0)
+            (!sqord.reverse && sqord.counter === 0) ||
+            (sqord.reverse && sqord.counter === sqord.allObjects.length - 1)
           ) {
             sqord.changing = true;
 
             setTimeout(() => {
-              sqord.counter = sqord.reverse ? maxArrayLength : 0;
-              sqord.moveSteps = 0;
-              sqord.moveStepsR = 0;
-              sqord.moveSegments = 0;
-              sqord.moveSegmentsR = 0;
               sqord.start = false;
               sqord.changing = false;
-              sqord.reverse = !sqord.reverse;
-            }, 3000);
+              if (sqord.dodge) {
+                sqord.counter = sqord.reverse ? 0 : sqord.allObjects.length - 1;
+              } else {
+                sqord.reverse = !sqord.reverse;
+              }
+            }, 10000);
           }
         }
 
-        for (let j = 0; j < (mySqord.current.segments - 1); j++) {
-          for (let i = 0; i <= (mySqord.current.steps); i++) {
-            let hue = sqord.reverse ?
-              360 - (((sqord.color / sqord.spread) + sqord.startColor + p.abs(sqord.index)) % 360) :
-              (((sqord.color / sqord.spread) + sqord.startColor) + p.abs(sqord.index)) % 360;
+        for (const allObject of sqord.allObjects) {
+          let hue = sqord.flow ?
+            360 - (((sqord.color / sqord.spread) + sqord.startColor + p.abs(sqord.index)) % 360) :
+            (((sqord.color / sqord.spread) + sqord.startColor) + p.abs(sqord.index)) % 360;
 
-            const foundLines = sqord.lines.filter((l: any) => l.i === i && l.j === j);
-
-            for (const foundLine of foundLines) {
-              if (hue) {
-                foundLine.line.material.color.setHSL(hue / 360, 1, 0.5);
-              } else {
-                let gray = ((mySqord.current.color + p.abs(sqord.index)) % 255) / 255;
-                foundLine.line.material.color = new THREE.Color(gray, gray, gray);
-              }
-
-              foundLine.line.material.needsUpdate = true;
-              mySqord.current.color++;
+          if (allObject.type !== 'blank') {
+            if (hue) {
+              allObject[allObject.type].material.color.setHSL(hue / 360, 1, 0.5);
+            } else {
+              let gray = ((sqord.color + p.abs(sqord.index)) % 255) / 255;
+              allObject[allObject.type].material.color = new THREE.Color(gray, gray, gray);
             }
 
-            const foundOutlines = sqord.outlines.filter((l: any) => l.i === i && l.j === j);
-
-            for (const foundOutline of foundOutlines) {
-              if (hue) {
-                foundOutline.outline.material.color.setHSL(hue / 360, 1, 0.5);
-              } else {
-                let gray = ((mySqord.current.color + p.abs(sqord.index)) % 255) / 255;
-                foundOutline.outline.material.color = new THREE.Color(gray, gray, gray);
-              }
-
-              foundOutline.outline.material.needsUpdate = true;
-              mySqord.current.color++;
-            }
-
-            const foundObjects = sqord.objects.filter((l: any) => l.i === i && l.j === j);
-
-            for (const foundObject of foundObjects) {
-              if (hue) {
-                foundObject.object.material.color.setHSL(hue / 360, 1, 0.5);
-              } else {
-                let gray = ((mySqord.current.color + p.abs(sqord.index)) % 255) / 255;
-                foundObject.object.material.color = new THREE.Color(gray, gray, gray);
-              }
-
-              foundObject.object.material.needsUpdate = true;
-              mySqord.current.color++;
-            }
+            allObject[allObject.type].material.needsUpdate = true;
+            sqord.color++;
           }
-  
+
           mySqord.current.seed = parseInt(mySqord.current.hash.slice(0, 16), 16);
         }
 
         sqord.index = sqord.reverse ? (sqord.index - sqord.speed) : sqord.index + sqord.speed;
-
-        // if (!mySqord.current.pause && p.abs(mySqord.current.index) > mySqord.current.speed * 15) {
-        //   scene.traverse((o) => {
-        //     if (o instanceof THREE.Mesh){
-        //       o.geometry.dispose();
-        //       o.material.dispose();
-        //     }
-        //   });
-
-        //   while(scene.children.length > 0){ 
-        //     scene.remove(scene.children[0]); 
-        //   }
-        // }
 
         renderer.render(scene, camera);
       };

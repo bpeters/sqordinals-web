@@ -65,6 +65,7 @@ export const makeSqord = (hash: any, isNext: boolean, sqord2: any) => {
     outlines: [],
     blanks: [],
     allObjects: [],
+    counter: 0,
   }
 
   if (!sqord2) {
@@ -111,6 +112,7 @@ export const makeSqord = (hash: any, isNext: boolean, sqord2: any) => {
   sqord.rotateY = (sqord.decPairs[16] < 128 ? -1 * sqord.decPairs[16] / 255 : sqord.decPairs[15] / 255) || 0;
   sqord.rotateZ = (sqord.decPairs[14] < 128 ? -1 * sqord.decPairs[14] / 255 : sqord.decPairs[14] / 255) || 0;
   sqord.spikes = sqord.decPairs[13] < 128;
+  sqord.flow = sqord.decPairs[12] < 128;
   sqord.index = 0;
   sqord.pause = false;
 
@@ -141,13 +143,6 @@ export const makeSqord = (hash: any, isNext: boolean, sqord2: any) => {
   } else {
     sqord.amp = ((sqord.decPairs[2] % 128) / 100);
     sqord.reverse = sqord.decPairs[30] < 128;
-  }
-
-  if (!sqord.reverse) {
-    sqord.moveSegmentsR2 = Math.floor(sqord.segments);
-    sqord.moveSegments2 = Math.floor(sqord.segments);
-    sqord.moveStepsR2 = sqord.steps;
-    sqord.moveSteps2 = sqord.steps;
   }
 
   sqord.start = true;
@@ -227,6 +222,13 @@ export const displaySqord = (
 
     group.add(line);
 
+    mySqord.current.allObjects.push({
+      i,
+      j,
+      line,
+      type: 'line',
+    });
+
     mySqord.current.lines.push({
       i,
       j,
@@ -266,6 +268,13 @@ export const displaySqord = (
     object.visible = sqord.flipper ? true : false;
     group.add(object);
 
+    mySqord.current.allObjects.push({
+      i,
+      j,
+      object,
+      type: 'object',
+    });
+
     mySqord.current.objects.push({
       i,
       j,
@@ -292,6 +301,13 @@ export const displaySqord = (
       outlineSphere.visible = sqord.flipper ? true : false;
       group.add(outlineSphere);
 
+      mySqord.current.allObjects.push({
+        i,
+        j,
+        blank: outlineSphere,
+        type: 'blank',
+      });
+
       mySqord.current.blanks.push({
         i,
         j,
@@ -307,6 +323,13 @@ export const displaySqord = (
       let objectEmpty = new THREE.Mesh(geometry, material);
       objectEmpty.visible = sqord.flipper ? true : false;
       group.add(objectEmpty);
+
+      mySqord.current.allObjects.push({
+        i,
+        j,
+        blank: objectEmpty,
+        type: 'blank',
+      });
 
       mySqord.current.blanks.push({
         i,
@@ -333,6 +356,13 @@ export const displaySqord = (
         object.visible = sqord.flipper ? true : false;
         object.position.set(x, y, z);
         group.add(object);
+
+        mySqord.current.allObjects.push({
+          i,
+          j,
+          blank: object,
+          type: 'blank',
+        });
 
         mySqord.current.blanks.push({
           i,
@@ -379,6 +409,13 @@ export const displaySqord = (
       outline.position.set(x, y, z);
       outline.visible = sqord.flipper ? true : false;
       group.add(outline);
+
+      mySqord.current.allObjects.push({
+        i,
+        j,
+        outline,
+        type: 'outline',
+      });
  
       mySqord.current.outlines.push({
         i,
@@ -408,12 +445,24 @@ export const displaySqord = (
     group.add(object);
 
     if (!isBlack) {
+      mySqord.current.allObjects.push({
+        i,
+        j,
+        object,
+        type: 'object',
+      });
       mySqord.current.objects.push({
         i,
         j,
         object,
       });
     } else {
+      mySqord.current.allObjects.push({
+        i,
+        j,
+        blank: object,
+        type: 'blank',
+      });
       mySqord.current.blanks.push({
         i,
         j,
