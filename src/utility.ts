@@ -64,6 +64,7 @@ export const makeSqord = (hash: any, isNext: boolean, sqord2: any) => {
     lines: [],
     outlines: [],
     blanks: [],
+    allObjects: [],
   }
 
   if (!sqord2) {
@@ -109,6 +110,7 @@ export const makeSqord = (hash: any, isNext: boolean, sqord2: any) => {
   sqord.rotateX = (sqord.decPairs[15] < 128 ? -1 * sqord.decPairs[15] / 255 : sqord.decPairs[15] / 255) || 0;
   sqord.rotateY = (sqord.decPairs[16] < 128 ? -1 * sqord.decPairs[16] / 255 : sqord.decPairs[15] / 255) || 0;
   sqord.rotateZ = (sqord.decPairs[14] < 128 ? -1 * sqord.decPairs[14] / 255 : sqord.decPairs[14] / 255) || 0;
+  sqord.spikes = sqord.decPairs[13] < 128;
   sqord.index = 0;
   sqord.pause = false;
 
@@ -156,7 +158,6 @@ export const makeSqord = (hash: any, isNext: boolean, sqord2: any) => {
 
 export const displaySqord = (
   mySqord: any,
-  scene: any,
   group: any,
   p: any,
   j: any,
@@ -200,7 +201,7 @@ export const displaySqord = (
     y = uuu * y1 + 3 * uu * t * y2 + 3 * u * tt * y3 + ttt * y4;
   }
 
-  if (true) {
+  if (sqord.spikes) {
     let x0 = p.curvePoint(x1, x2, x3, x4, sqord.flowers ? 0 : 1);
     let y0 = p.curvePoint(y1, y2, y3, y4, sqord.flowers ? 0 : 1);
 
@@ -222,9 +223,10 @@ export const displaySqord = (
     }
 
     let line = new THREE.Line(geometry, material);
+    line.visible = sqord.flipper ? true : false;
 
     group.add(line);
-    // scene.add(line);
+
     mySqord.current.lines.push({
       i,
       j,
@@ -261,8 +263,9 @@ export const displaySqord = (
     object = new THREE.Mesh(geometry, material);
 
     object.position.set(fuzzX, fuzzY, fuzzZ);
+    object.visible = sqord.flipper ? true : false;
     group.add(object);
-    // scene.add(object);
+
     mySqord.current.objects.push({
       i,
       j,
@@ -286,9 +289,9 @@ export const displaySqord = (
       let outlineSphere = new THREE.Mesh(outlineGeometry, outlineMaterial);
 
       outlineSphere.position.set(x, y, z);
-
+      outlineSphere.visible = sqord.flipper ? true : false;
       group.add(outlineSphere);
-      // scene.add(outlineSphere);
+
       mySqord.current.blanks.push({
         i,
         j,
@@ -302,9 +305,9 @@ export const displaySqord = (
       }
 
       let objectEmpty = new THREE.Mesh(geometry, material);
-
+      objectEmpty.visible = sqord.flipper ? true : false;
       group.add(objectEmpty);
-      // scene.add(objectEmpty);
+
       mySqord.current.blanks.push({
         i,
         j,
@@ -327,10 +330,10 @@ export const displaySqord = (
         }
 
         object = new THREE.Mesh(geometry, material);
-
+        object.visible = sqord.flipper ? true : false;
         object.position.set(x, y, z);
         group.add(object);
-        // scene.add(object);
+
         mySqord.current.blanks.push({
           i,
           j,
@@ -374,9 +377,9 @@ export const displaySqord = (
       let outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
 
       outline.position.set(x, y, z);
-
+      outline.visible = sqord.flipper ? true : false;
       group.add(outline);
-      // scene.add(outline);
+ 
       mySqord.current.outlines.push({
         i,
         j,
@@ -401,8 +404,8 @@ export const displaySqord = (
     object = new THREE.Mesh(geometry, material);
 
     object.position.set(x, y, z);
+    object.visible = sqord.flipper ? true : false;
     group.add(object);
-    // scene.add(object);
 
     if (!isBlack) {
       mySqord.current.objects.push({

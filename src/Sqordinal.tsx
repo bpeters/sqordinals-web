@@ -269,7 +269,7 @@ export const Sqordinal = () => {
         }
       
         mySqord.current = prepareSqord(mySqord.current);
-      
+
         const handleSteps = (j: any, i: any, sqord: any) => {
           let t = i / sqord.steps;
       
