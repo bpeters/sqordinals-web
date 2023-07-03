@@ -19,19 +19,6 @@ const mapValue = (value: any, start1: any, stop1: any, start2: any, stop2: any) 
   return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
 }
 
-const curvePoint = (x1: any, y1: any, x2: any, y2: any, x3: any, y3: any, x4: any, y4: any, t: any) => {
-  const u = 1 - t;
-  const tt = t * t;
-  const uu = u * u;
-  const uuu = uu * u;
-  const ttt = tt * t;
-
-  const x = uuu * x1 + 3 * uu * t * x2 + 3 * u * tt * x3 + ttt * x4;
-  const y = uuu * y1 + 3 * uu * t * y2 + 3 * u * tt * y3 + ttt * y4;
-
-  return { x, y };
-};
-
 const catmullRom = (t: any, p0: any, p1: any, p2: any, p3: any) => {
   const v0 = (p2 - p0) * 0.5;
   const v1 = (p3 - p1) * 0.5;
@@ -90,7 +77,7 @@ function generateRandomHex(sqord: any) {
 
 const hslToRgba = (h: any, s: any, l: any, a: any) => {
   let r, g, b;
-  if(s == 0) {
+  if(s === 0) {
     r = g = b = l;
   } else {
     let hue2rgb = function hue2rgb(p: any, q: any, t: any) {
@@ -172,10 +159,6 @@ const makeSqord = (hash: any, isNext: any, sqord2: any) => {
       ((sqord.decPairs[17] % 2000) + 1) :
       ((sqord.decPairs[17] % 400) + 1);
 
-  if (sqord.squared) {
-    sqord.steps = Math.round(sqord.steps / 2) + 1;
-  }
-
   if (isNext) {
     sqord.reverse = sqord2.reverse;
     sqord.amp = sqord2.amp;
@@ -197,6 +180,10 @@ const makeSqord = (hash: any, isNext: any, sqord2: any) => {
   } else {
     sqord.amp = ((sqord.decPairs[2] % 128) / 100);
     sqord.reverse = sqord.decPairs[30] < 128;
+  }
+
+  if (sqord.squared) {
+    sqord.steps = Math.round(sqord.steps / 4) + 1;
   }
 
   sqord.ht = mapValue(sqord.decPairs[27], 0, 255, 3, 4);
@@ -232,7 +219,6 @@ const displaySqord = (
   let y3 = mapValue(sqord.decPairs[j + 2], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp || 0;
   let y4 = mapValue(sqord.decPairs[j + 3], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp || 0;
 
-  // let { x, y } = curvePoint(x1, y1, x2, y2, x3, y3, x4, y4, t);
   let x = catmullRom(t, x1, x2, x3, x4);
   let y = catmullRom(t, y1, y2, y3, y4);
 
@@ -405,10 +391,6 @@ const displaySqord = (
             depth: newSize,
             stroke: newSize,
             color,
-            leftFace: color,
-            rightFace: color,
-            topFace: color,
-            bottomFace: color,
             translate: { x, y, z },
             visible: sqord.flipper ? true : false,
           }),
@@ -504,8 +486,12 @@ export const Sqordinal2 = ({ seed, setCanvas, set, isPause, handleSetPause }: an
       mySet.current = window.set;
       mySqord.current.pause = isPause;
 
-      myGroup.current = new Zdog.Group({
+      let anchor = new Zdog.Anchor({
         addTo: myIllo.current,
+      });
+
+      myGroup.current = new Zdog.Group({
+        addTo: anchor,
         translate: { x: -1 * (width / 3.6), z: 0, y: 0 },
       });
 
@@ -546,8 +532,6 @@ export const Sqordinal2 = ({ seed, setCanvas, set, isPause, handleSetPause }: an
 
       mySqord.current = makeSqord(seed.hash, false, null);
 
-      console.log(mySqord.current)
-
       window.set = 0;
       mySet.current = set;
 
@@ -559,13 +543,16 @@ export const Sqordinal2 = ({ seed, setCanvas, set, isPause, handleSetPause }: an
 
       mySqord.current.pause = isPause;
 
-      myGroup.current = new Zdog.Group({
+      let anchor = new Zdog.Anchor({
         addTo: illo,
+      });
+
+      myGroup.current = new Zdog.Group({
+        addTo: anchor,
         translate: { x: -1 * (width / 3.6), z: 0, y: 0 },
       });
 
       for (let j = 0; j < (mySqord.current.segments - 1); j++) {
-        console.log(j)
         for (let i = 0; i <= (mySqord.current.steps); i++) {
           displaySqord(mySqord.current, myGroup.current, j, i);
         }
@@ -662,8 +649,8 @@ export const Sqordinal2 = ({ seed, setCanvas, set, isPause, handleSetPause }: an
 
           if (!object.isBlack) {
             if (object.isCube) {
-              if (hue) {
-                object.object.color = hslToRgba(hue / 360, 1, 0.5, object.opacity || 1);
+              if (!_.isNaN(hue)) {
+                object.object.color = hslToRgba(hue / 360, 1, 0.5, 0);
                 object.object.leftFace = hslToRgba(hue / 360, 1, 0.5, object.opacity || 1);
                 object.object.rightFace = hslToRgba(hue / 360, 1, 0.5, object.opacity || 1);
                 object.object.topFace = hslToRgba(hue / 360, 1, 0.5, object.opacity || 1);
