@@ -611,9 +611,9 @@ export const Sqordinal2 = ({ seed, setCanvas, set, isPause, handleSetPause }: an
         sqord.color = 0;
 
         if (!sqord.pause) {
-          illo.rotate.y += sqord.speed / 100 * sqord.rotateY;
-          illo.rotate.x += sqord.speed / 100 * sqord.rotateX;
-          illo.rotate.z += sqord.speed / 100 * sqord.rotateZ;
+          illo.rotate.y += sqord.speed / 1000 * sqord.rotateY;
+          illo.rotate.x += sqord.speed / 1000 * sqord.rotateX;
+          illo.rotate.z += sqord.speed / 1000 * sqord.rotateZ;
         }
 
         if (!sqord.start && !sqord.flipper) {
