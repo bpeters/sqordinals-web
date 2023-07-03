@@ -32,6 +32,17 @@ const curvePoint = (x1: any, y1: any, x2: any, y2: any, x3: any, y3: any, x4: an
   return { x, y };
 };
 
+const catmullRom = (t: any, p0: any, p1: any, p2: any, p3: any) => {
+  const v0 = (p2 - p0) * 0.5;
+  const v1 = (p3 - p1) * 0.5;
+  const t2 = t * t;
+  const t3 = t * t * t;
+
+  return (2 * p1 - 2 * p2 + v0 + v1) * t3 +
+    (-3 * p1 + 3 * p2 - 2 * v0 - v1) * t2 +
+    v0 * t + p1;
+}
+
 const quadraticBezierCurve = (x1: any, y1: any, x2: any, y2: any, x3: any, y3: any, t: any) => {
   const u = 1 - t;
   const tt = t * t;
@@ -221,15 +232,13 @@ const displaySqord = (
   let y3 = mapValue(sqord.decPairs[j + 2], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp || 0;
   let y4 = mapValue(sqord.decPairs[j + 3], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp || 0;
 
-  let { x, y } = curvePoint(x1, y1, x2, y2, x3, y3, x4, y4, t);
+  // let { x, y } = curvePoint(x1, y1, x2, y2, x3, y3, x4, y4, t);
+  let x = catmullRom(t, x1, x2, x3, x4);
+  let y = catmullRom(t, y1, y2, y3, y4);
 
   y = y * -1;
 
   let z = -1 * ((sqord.segments * sqord.amp) + i + 1)
-
-  let hue = sqord.reverse ?
-    360 - (((sqord.color / sqord.spread) + sqord.startColor + Math.abs(sqord.index)) % 360) :
-    (((sqord.color / sqord.spread) + sqord.startColor) + Math.abs(sqord.index)) % 360;
 
   if (sqord.creepy) {
     let u = 1 - t;
@@ -537,6 +546,8 @@ export const Sqordinal2 = ({ seed, setCanvas, set, isPause, handleSetPause }: an
 
       mySqord.current = makeSqord(seed.hash, false, null);
 
+      console.log(mySqord.current)
+
       window.set = 0;
       mySet.current = set;
 
@@ -554,6 +565,7 @@ export const Sqordinal2 = ({ seed, setCanvas, set, isPause, handleSetPause }: an
       });
 
       for (let j = 0; j < (mySqord.current.segments - 1); j++) {
+        console.log(j)
         for (let i = 0; i <= (mySqord.current.steps); i++) {
           displaySqord(mySqord.current, myGroup.current, j, i);
         }

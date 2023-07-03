@@ -75,7 +75,7 @@ export const SqordinalUI = () => {
 
   useEffect(() => {
     if (canvas) {
-      let stream = canvas.captureStream(60);
+      let stream = canvas.captureStream(30);
       recorder = new MediaRecorder(stream);
   
       recorder.onerror = function(e: any) {
