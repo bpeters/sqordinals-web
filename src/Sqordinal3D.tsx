@@ -33,11 +33,6 @@ let recorder: any;
 let clock = new THREE.Clock();
 let isRotating = false;  // Start with rotation enabled
 
-
-declare global {
-  var Q5: any;
-}
-
 function updateGroupCenter(group: any) {
   // Calculate the bounding box and get its center
   let box = new THREE.Box3().setFromObject( group );
@@ -54,20 +49,6 @@ function updateGroupCenter(group: any) {
     child.position.y -= center.y;
     child.position.z -= center.z;
   });
-}
-
-function showObjects(sqord: any, j: any, i: any, visible: any) {
-  const foundLines = sqord.lines.filter((l: any) => l.i === i && l.j === j);
-  foundLines.forEach((foundLine: any) => foundLine.line.visible = visible);
-
-  const foundOutlines = sqord.outlines.filter((l: any) => l.i === i && l.j === j);
-  foundOutlines.forEach((foundOutline: any) => foundOutline.outline.visible = visible);
-
-  const foundObjects = sqord.objects.filter((l: any) => l.i === i && l.j === j);
-  foundObjects.forEach((foundObject: any) => foundObject.object.visible = visible);
-
-  const foundBlanks = sqord.blanks.filter((l: any) => l.i === i && l.j === j);
-  foundBlanks.forEach((foundBlank: any) => foundBlank.blank.visible = visible);
 }
 
 export const Sqordinal3D = () => {
@@ -124,20 +105,12 @@ export const Sqordinal3D = () => {
 
       mySqord.current = makeSqord(seed.hash, false, null);
       let sqord = mySqord.current;
-  
-      const p = new Q5();
+      sqord.height = window.innerHeight;
+      sqord.width = window.innerWidth;
 
-      p.setup = function () {
-        let canvas = p.createCanvas(p.windowWidth, p.windowHeight);
-
-        canvas.ontouchstart = () => {};
-        canvas.ontouchmove = () => {};
-        canvas.ontouchend = () => {};
-      };
-
-      sqord.ht = p.map(sqord.decPairs[27], 0, 255, 3, 4);
+      sqord.ht = mapValue(sqord.decPairs[27], 0, 255, 3, 4);
       sqord.color = 0;
-      sqord.div = Math.floor(p.map(Math.round(sqord.decPairs[24]), 0, 230, 3, 20));
+      sqord.div = Math.floor(mapValue(Math.round(sqord.decPairs[24]), 0, 230, 3, 20));
 
       console.log(sqord);
 
@@ -145,7 +118,7 @@ export const Sqordinal3D = () => {
 
       for (let j = 0; j < (sqord.segments - 1); j++) {
         for (let i = 0; i <= (sqord.steps); i++) {
-          displaySqord(mySqord, group, p, j, i);
+          displaySqord(mySqord, group, j, i);
         }
 
         sqord.seed = parseInt(sqord.hash.slice(0, 16), 16);
@@ -218,14 +191,14 @@ export const Sqordinal3D = () => {
 
         for (const allObject of sqord.allObjects) {
           let hue = sqord.flow ?
-            360 - (((sqord.color / sqord.spread) + sqord.startColor + p.abs(sqord.index)) % 360) :
-            (((sqord.color / sqord.spread) + sqord.startColor) + p.abs(sqord.index)) % 360;
+            360 - (((sqord.color / sqord.spread) + sqord.startColor + Math.abs(sqord.index)) % 360) :
+            (((sqord.color / sqord.spread) + sqord.startColor) + Math.abs(sqord.index)) % 360;
 
           if (allObject.type !== 'blank') {
             if (hue) {
               allObject[allObject.type].material.color.setHSL(hue / 360, 1, 0.5);
             } else {
-              let gray = ((sqord.color + p.abs(sqord.index)) % 255) / 255;
+              let gray = ((sqord.color + Math.abs(sqord.index)) % 255) / 255;
               allObject[allObject.type].material.color = new THREE.Color(gray, gray, gray);
             }
 

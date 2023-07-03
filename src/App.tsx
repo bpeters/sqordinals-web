@@ -13,8 +13,9 @@ import {
 import { FaTwitter, FaMediumM, FaDiscord } from 'react-icons/fa'
 
 import { Home } from "./Home";
-import { Sqordinal } from "./Sqordinal";
 import { Sqordinal3D } from "./Sqordinal3D";
+import { Sqordinal2 } from "./Sqordinal2";
+import { SqordinalUI } from "./SqordinalUI";
 import MusicPlayer from "./MusicPlayer";
 
 ReactGA.initialize('G-S8026RGDNM');
@@ -157,7 +158,8 @@ export const App = () => {
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="sqordinal/:id" element={<Sqordinal3D />} />
+          <Route path="sqordinal/:id" element={<SqordinalUI />} />
+          <Route path="awaken/:awakenId" element={<SqordinalUI />} />
         </Routes>
         <Footer />
       </Router>

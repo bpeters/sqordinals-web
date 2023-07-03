@@ -1,8 +1,10 @@
-import { Slider, SliderTrack, SliderFilledTrack, SliderThumb, IconButton, VStack, HStack } from '@chakra-ui/react';
+import { Slider, SliderTrack, SliderFilledTrack, SliderThumb, IconButton, VStack, HStack, Text, Box } from '@chakra-ui/react';
 import { useState, useEffect, useRef } from 'react';
-import { FaPlay, FaPause, FaMusic } from 'react-icons/fa'
+import { FaPause, FaMusic } from 'react-icons/fa'
+import { BiSkipNext } from 'react-icons/bi';
 
 const songs = [
+  '/audio/10_infinitum.d.mp3',
   '/audio/1_sigma.d.wav',
   '/audio/2_dev.d.wav',
   '/audio/3_blank.d.wav',
@@ -14,9 +16,27 @@ const songs = [
   '/audio/9_burn.d.wav',
 ];
 
+const songNames = [
+  'infinitum.d',
+  'sigma.d',
+  'dev.d',
+  'blank.d',
+  'dox.d',
+  'alpha.d',
+  'naughty.d',
+  'simp.d',
+  'beta.d',
+  'burn.d',
+];
+
+const openInNewTab = (url: string) => {
+  const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
+  if (newWindow) newWindow.opener = null
+}
+
 const MusicPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentSongIndex, setCurrentSongIndex] = useState(Math.floor(Math.random() * songs.length));
+  const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const audioRef: any = useRef(null);
   const [volume, setVolume] = useState(1);
 
@@ -45,11 +65,7 @@ const MusicPlayer = () => {
   }, [volume]);
 
   const playNextSong = () => {
-    let nextSongIndex;
-    do {
-      nextSongIndex = Math.floor(Math.random() * songs.length);
-    } while (nextSongIndex === currentSongIndex);
-    setCurrentSongIndex(nextSongIndex);
+    setCurrentSongIndex((currentSongIndex + 1) % songs.length);
   };
 
   const handlePlayPause = () => {
@@ -61,34 +77,79 @@ const MusicPlayer = () => {
   };
 
   return (
-    <HStack
-      spacing={4}
+    <VStack
+      spacing={0}
+      align={'flex-start'}
     >
-      <IconButton
-        aria-label="Play pause"
-        icon={isPlaying ? <FaPause color="#FE0101" /> : <FaMusic color="#FF00EE" />}
-        onClick={handlePlayPause}
-        backgroundColor="black"
-        _hover={{ backgroundColor: 'gray.800' }}
-        _active={{ backgroundColor: 'gray.900' }}
-      />
-      <Slider
-        aria-label="slider-ex-4"
-        value={volume}
-        min={0}
-        max={1}
-        step={0.01}
-        onChange={handleVolumeChange}
-        orientation="horizontal"
-        width={'100px'}
-        colorScheme="pink"
+      <HStack
+        spacing={4}
       >
-        <SliderTrack bg="gray.300">
-          <SliderFilledTrack bg="pink.500" />
-        </SliderTrack>
-        <SliderThumb boxSize={3} />
-      </Slider>
-    </HStack>
+        <IconButton
+          aria-label="Play pause"
+          icon={isPlaying ? <BiSkipNext color="#FF00EE" size={'24px'} /> : <BiSkipNext color="#fff" opacity={0.5} size={'24px'} /> }
+          onClick={() => {
+            playNextSong();
+          }}
+          disabled={!isPlaying}
+          backgroundColor="transparent"
+          _hover={{ backgroundColor: 'gray.800' }}
+          _active={{ backgroundColor: 'gray.900' }}
+        />
+        <HStack
+          spacing={1}
+        >
+        <Text
+          color="#fff"
+          fontSize={'12px'}
+          opacity={isPlaying ? 1 : 0.5}
+        >
+          {isPlaying ? `${songNames[currentSongIndex]} by` : 'not playing'}
+        </Text>
+        {isPlaying && (
+          <Text
+            onClick={() => {openInNewTab('https://twitter.com/jonhugo')}}
+            color="#FF00EE"
+            fontWeight={'bold'}
+            fontSize={'12px'}
+            _hover={{
+              cursor: 'pointer',
+              opacity: 0.8,
+            }}
+          >
+            @jonhugo
+          </Text>
+        )}
+        </HStack>
+      </HStack>
+      <HStack
+        spacing={4}
+      >
+        <IconButton
+          aria-label="Play pause"
+          icon={isPlaying ? <FaPause color="#FE0101" /> : <FaMusic color="#FF00EE" />}
+          onClick={handlePlayPause}
+          backgroundColor="transparent"
+          _hover={{ backgroundColor: 'gray.800' }}
+          _active={{ backgroundColor: 'gray.900' }}
+        />
+        <Slider
+          aria-label="slider-ex-4"
+          value={volume}
+          min={0}
+          max={1}
+          step={0.01}
+          onChange={handleVolumeChange}
+          orientation="horizontal"
+          width={'100px'}
+          colorScheme="pink"
+        >
+          <SliderTrack bg="gray.300">
+            <SliderFilledTrack bg="pink.500" />
+          </SliderTrack>
+          <SliderThumb boxSize={3} />
+        </Slider>
+      </HStack>
+    </VStack>
   );
 };
 

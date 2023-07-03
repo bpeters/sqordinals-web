@@ -48,6 +48,19 @@ export const mapValue = (value: any, start1: any, stop1: any, start2: any, stop2
   return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
 }
 
+export const curvePoint = (x1: any, y1: any, x2: any, y2: any, x3: any, y3: any, x4: any, y4: any, t: any) => {
+  const u = 1 - t;
+  const tt = t * t;
+  const uu = u * u;
+  const uuu = uu * u;
+  const ttt = tt * t;
+
+  const x = uuu * x1 + 3 * uu * t * x2 + 3 * u * tt * x3 + ttt * x4;
+  const y = uuu * y1 + 3 * uu * t * y2 + 3 * u * tt * y3 + ttt * y4;
+
+  return { x, y };
+};
+
 export const prepareSqord = (s: any) => {
   s.ht = mapValue(s.decPairs[27], 0, 255, 3, 4);
   s.color = 0;
@@ -154,7 +167,6 @@ export const makeSqord = (hash: any, isNext: boolean, sqord2: any) => {
 export const displaySqord = (
   mySqord: any,
   group: any,
-  p: any,
   j: any,
   i: any,
 ) => {
@@ -177,13 +189,15 @@ export const displaySqord = (
   let y3 = mapValue(sqord.decPairs[j + 2], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp || 0;
   let y4 = mapValue(sqord.decPairs[j + 3], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp || 0;
 
-  let x = p.curvePoint(x1, x2, x3, x4, t);
-  let y = p.curvePoint(y1, y2, y3, y4, t) * -1;
+  let { x, y } = curvePoint(x1, y1, x2, y2, x3, y3, x4, y4, t);
+
+  y = y * -1;
+
   let z = -2 * ((sqord.segments * sqord.amp) + i + 1)
 
   let hue = sqord.reverse ?
-    360 - (((sqord.color / sqord.spread) + sqord.startColor + p.abs(sqord.index)) % 360) :
-    (((sqord.color / sqord.spread) + sqord.startColor) + p.abs(sqord.index)) % 360;
+    360 - (((sqord.color / sqord.spread) + sqord.startColor + Math.abs(sqord.index)) % 360) :
+    (((sqord.color / sqord.spread) + sqord.startColor) + Math.abs(sqord.index)) % 360;
 
   if (sqord.creepy) {
     let u = 1 - t;
@@ -197,8 +211,7 @@ export const displaySqord = (
   }
 
   if (sqord.spikes) {
-    let x0 = p.curvePoint(x1, x2, x3, x4, sqord.flowers ? 0 : 1);
-    let y0 = p.curvePoint(y1, y2, y3, y4, sqord.flowers ? 0 : 1);
+    let { x: x0, y: y0 } = curvePoint(x1, y1, x2, y2, x3, y3, x4, y4, sqord.flowers ? 0 : 1);
 
     let curve = new THREE.QuadraticBezierCurve3(
       new THREE.Vector3( x0, y0, z ), // control point
@@ -242,11 +255,11 @@ export const displaySqord = (
   let isBlack = false;
 
   if (sqord.fuzzy) {
-    let fuzzX = x + p.map(rnd(sqord), 0, 1, 0, p.height / 3);
-    let fuzzY = y - p.map(rnd(sqord), 0, 1, 0, p.height / 3);
-    let fuzzZ = p.map(rnd(sqord), 0, 1, 0, p.height);
+    let fuzzX = x + mapValue(rnd(sqord), 0, 1, 0, height / 32);
+    let fuzzY = y - mapValue(rnd(sqord), 0, 1, 0, height / 32);
+    let fuzzZ = mapValue(rnd(sqord), 0, 1, 0, height / 8);
 
-    let size = p.map(rnd(sqord), 0, 1, p.height / 35, p.height / 4);
+    let size = mapValue(rnd(sqord), 0, 1, height / 64, height / 32);
 
     if (sqord.squared) {
       geometry = new THREE.BoxGeometry(size * 2, size * 2, size * 2);

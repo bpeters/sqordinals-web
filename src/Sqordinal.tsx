@@ -1,32 +1,11 @@
-import { useState, useEffect, useRef } from "react"
+import { useEffect, useRef } from "react"
 import _ from 'lodash';
 import {
-  Box,
-  Text,
   VStack,
-  HStack,
-  Image,
-  Button,
-  Icon,
-  Input,
 } from "@chakra-ui/react"
-import { useParams, useNavigate, createSearchParams, useLocation } from 'react-router-dom';
-import { TbWaveSine, TbInfinity, TbRecordMail, TbRecordMailOff } from 'react-icons/tb'
-
-import { seeds } from "./seeds";
-import RecordTimer from "./RecordTimer";
-import SqordSet from "./SqordSet";
-
-let chunks: any = []; // Here we will save all video data
-let recorder: any;
 
 declare global {
   var Q5: any;
-}
-
-const openInNewTab = (url: string) => {
-  const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
-  if (newWindow) newWindow.opener = null
 }
 
 function lcg(sqord: any) {
@@ -158,28 +137,31 @@ function rnd(sqord: any) {
   return (((sqord.seed < 0) ? ~sqord.seed + 1 : sqord.seed) % 1000) / 1000;
 }
 
-export const Sqordinal = () => {
-  const { search } = useLocation();
-  const set: string = new URLSearchParams(search).get('set') || '0';
-  const vibe: string = new URLSearchParams(search).get('vibe') || '0';
-
+export const Sqordinal = ({ seed, setCanvas, set, isPause }: any) => {
+  const mySet: any = useRef();
   const myP5: any = useRef();
   const mySqord: any = useRef();
-  const { id }: any = useParams();
-  const navigate = useNavigate();
-  const [isPause, setIsPause] = useState(false);
-  const [record, setRecord] = useState(false);
-  const [value, setValue]: any = useState(0);
-
-  const index = parseInt(id, 10);
 
   useEffect(() => {
-    if (index < 0 || index > 255 || _.isNaN(index)) {
-      window.location.assign(`/`);
-    }
-  }, [index, navigate]);
+    if (mySet.current && mySet.current !== set) {
+      window.set = 0;
+      mySqord.current = makeSqord(seed.hash, false, null, myP5.current);
+  
+      if (set > 0) {
+        for (let i = 1; i <= set; i++) {
+          mySqord.current = makeSqord('', true, generateRandomHex(mySqord.current), myP5.current);
+        }
+      }
 
-  const seed = seeds[index];
+      mySqord.current.pause = isPause;
+    }
+  }, [set]);
+
+  useEffect(() => {
+    if (mySqord.current) {
+      mySqord.current.pause = isPause;
+    }
+  }, [isPause]);
 
   useEffect(() => {
     if (!myP5.current && seed) {
@@ -191,31 +173,20 @@ export const Sqordinal = () => {
       mySqord.current = makeSqord(seed.hash, false, null, p);
 
       window.set = 0;
+      mySet.current = set;
 
-      if (set && parseInt(set, 10) !== value) {
-        setValue(parseInt(set, 10));
-
-        if (parseInt(set, 10) > 0) {
-          for (let i = 1; i <= parseInt(set, 10); i++) {
-            mySqord.current = makeSqord('', true, generateRandomHex(mySqord.current), myP5.current);
-          }
+      if (parseInt(set, 10) > 0) {
+        for (let i = 1; i <= parseInt(set, 10); i++) {
+          mySqord.current = makeSqord('', true, generateRandomHex(mySqord.current), p);
         }
       }
 
-      if (vibe) {
-        if (vibe === '1') {
-          setIsPause(true);
-          mySqord.current.pause = true;
-        }
-
-        if (vibe === '0') {
-          setIsPause(false);
-          mySqord.current.pause = false;
-        }
-      }
+      mySqord.current.pause = isPause;
 
       p.setup = function () {
         let canvas = p.createCanvas(p.windowWidth, p.windowHeight);
+
+        setCanvas(canvas);
 
         canvas.ontouchstart = () => {};
         canvas.ontouchmove = () => {};
@@ -224,36 +195,6 @@ export const Sqordinal = () => {
         p.colorMode(p.HSB, 360);
         p.strokeWeight(p.height / 1200);
         p.pixelDensity(3);
-
-        let stream = canvas.captureStream(30);
-        recorder = new MediaRecorder(stream);
-
-        recorder.onerror = function(e: any) {
-          console.error('Error: ', e);
-        };
-
-        recorder.ondataavailable = function(e: any) {
-          chunks.push(e.data);
-        };
-
-        recorder.onstop = function(e: any) {
-          let blob = new Blob(chunks, { 'type' : 'video/webm' });
-          chunks = [];
-          let videoURL = URL.createObjectURL(blob);
-
-          var a = document.createElement("a");
-
-          // Set the href and download attributes of the anchor
-          a.href = videoURL;
-          a.download = 'sqordinal.webm';
-      
-          // Append the anchor into the body. The user will not see this in the document
-          document.body.appendChild(a);
-      
-          // Simulate click on the anchor, then remove it
-          a.click();
-          document.body.removeChild(a);
-        };
       };
 
       p.draw = function () {
@@ -406,7 +347,7 @@ export const Sqordinal = () => {
             if (j === p.floor(mySqord.current.segments) - mySqord.current.moveSegmentsR - 1) {
               dStepsR = mySqord.current.moveStepsR;
             }
-      
+
             for (let i = dSteps; i <= (mySqord.current.steps - dStepsR); i++) {
               handleSteps(j, i, mySqord.current);
               mySqord.current.color++;
@@ -414,7 +355,7 @@ export const Sqordinal = () => {
       
             mySqord.current.seed = parseInt(mySqord.current.hash.slice(0, 16), 16);
           }
-      
+
           if (p.floor(p.abs(mySqord.current.index)) % 1 === 0 && !mySqord.current.stop) {
             if (mySqord.current.reverse) {
               mySqord.current.moveSteps++;
@@ -546,175 +487,10 @@ export const Sqordinal = () => {
     }
   }, []);
 
-  const handleInputChange = (event: any) => {
-    setValue(event.target.value);
-  }
-
-  const handleShift = () => {
-    navigate({
-      pathname: `/sqordinal/${id}`,
-      search: `?${createSearchParams({
-        set: value,
-        vibe: isPause ? '1' : '0',
-      })}`,
-    }, { replace: true });
-    window.set = 0;
-    mySqord.current = makeSqord(seed.hash, false, null, myP5.current);
-
-    if (value > 0) {
-      for (let i = 1; i <= value; i++) {
-        mySqord.current = makeSqord('', true, generateRandomHex(mySqord.current), myP5.current);
-      }
-    }
-
-    if (isPause) {
-      mySqord.current.pause = true;
-    }
-  }
-
-  const handleKeyDown = (event: any) => {
-    if (event.key === 'Enter') {
-      handleShift();
-    }
-  }
-
   return (
     <VStack
       justify={'center'}
       align={'center'}
-    >
-      <VStack
-        zIndex={100000}
-        position={'fixed'}
-        top={'90px'}
-        left={0}
-        paddingLeft={'28px'}
-        justify={'flex-start'}
-        align={'flex-start'}
-        spacing={2}
-        width={'100vw'}
-      >
-        <HStack
-          spacing={2}
-          justify={'flex-start'}
-          align={'center'}
-        >
-          <Text
-            color={seed.uncommon ? '#E83A89' : 'white'}
-            fontWeight={'bold'}
-          >
-            {_.get(seed, 'name', '')}
-          </Text>
-          <Box
-            _hover={{
-              cursor: 'pointer',
-              opacity: 0.8,
-            }}
-            onClick={() => openInNewTab(`https://magiceden.io/ordinals/item-details/${seed.id}`)}
-          >
-            <Image
-              src="/magic-eden.svg"
-              alt="MagicEden"
-              width="30px"
-            />
-          </Box>
-          <Button
-            fontSize={'12px'}
-            fontWeight={'bold'}
-            backgroundColor="black"
-            _hover={{
-              backgroundColor: 'none',
-              opacity: 0.7,
-            }}
-            _active={{
-              backgroundColor: 'none',
-              color: 'green'
-            }}
-            paddingTop={'4px'}
-            paddingBottom={'4px'}
-            padding={'0px'}
-            onClick={() => {
-              handleShift();
-            }}
-          >
-            Shift
-          </Button>
-          <Input 
-            value={value}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            color="white"
-            type="number"
-            borderColor="transparent"
-            borderWidth={1}
-            borderRadius={0}
-            _focus={{
-              borderColor: 'transparent',
-              borderBottomColor: "white",
-              boxShadow: "none",
-            }}
-            _hover={{
-              borderBottomColor: "pink",
-              boxShadow: "none",
-            }}
-            fontSize={'10px'}
-            width={'40px'}
-            padding={'4px'}
-          />
-          <SqordSet />
-        </HStack>
-        <HStack
-          justify={'flex-start'}
-          align={'flex-start'}
-          paddingTop={'10px'}
-        >
-          <Button
-            fontSize={'12px'}
-            fontWeight={'bold'}
-            aria-label="Record"
-            leftIcon={isPause ? <Icon as={TbWaveSine} color="#FE0101" boxSize="28px" /> : <Icon as={TbInfinity} color="#16FE07" boxSize="28px" />}
-            onClick={() => {
-              mySqord.current.pause = !mySqord.current.pause;
-              setIsPause(!isPause)
-              navigate({
-                pathname: `/sqordinal/${id}`,
-                search: `?${createSearchParams({
-                  set: value,
-                  vibe: isPause ? '0' : '1',
-                })}`,
-              }, { replace: true });
-            }}
-            backgroundColor="black"
-            _hover={{ backgroundColor: 'gray.800' }}
-            _active={{ backgroundColor: 'gray.900' }}
-          >
-            {isPause ? 'Vibe Mode' : 'Infinite Mode'}
-          </Button>
-          <Button
-            fontSize={'12px'}
-            fontWeight={'bold'}
-            aria-label="Record"
-            leftIcon={record ? <Icon as={TbRecordMailOff} color="#FE0101" boxSize="28px" /> : <Icon as={TbRecordMail} color="#0100FF" boxSize="28px" />}
-            onClick={() => {
-              if (recorder) {
-                if (!record) {
-                  recorder.start(1000);
-                } else {
-                  recorder.stop();
-                }
-              }
-
-              setRecord(!record);
-            }}
-            backgroundColor="black"
-            _hover={{ backgroundColor: 'gray.800' }}
-            _active={{ backgroundColor: 'gray.900' }}
-          >
-            {record ? 'Stop Recording' : 'Start Recording'}
-          </Button>
-          {record && <RecordTimer />}
-        </HStack>
-      </VStack>
-    </VStack>
+    />
   )
 };
