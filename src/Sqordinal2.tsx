@@ -664,7 +664,7 @@ export const Sqordinal2 = ({ seed, setCanvas, set, isPause, handleSetPause }: an
                 object.object.bottomFace = grayscaleValue(gray, object.opacity || 1);
               }
             } else {
-              if (hue) {
+              if (!_.isNaN(hue)) {
                 object.object.color = hslToRgba(hue / 360, 1, 0.5, object.opacity || 1);
               } else {
                 let gray = ((sqord.color + Math.abs(sqord.index)) % 255) / 255;
