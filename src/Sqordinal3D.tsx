@@ -1,221 +1,271 @@
-import { useState, useEffect, useRef } from "react"
+import { useEffect, useRef } from "react"
 import _ from 'lodash';
 import * as THREE from 'three';
 import { ArcballControls } from "three/examples/jsm/controls/ArcballControls";
 import {
-  Box,
-  Text,
   VStack,
-  HStack,
-  Image,
-  Button,
-  Icon,
-  Input,
 } from "@chakra-ui/react"
-import { useParams, useNavigate, createSearchParams, useLocation } from 'react-router-dom';
-import { TbWaveSine, TbInfinity, TbRecordMail, TbRecordMailOff } from 'react-icons/tb'
 
-import { seeds } from "./seeds";
-import RecordTimer from "./RecordTimer";
-import SqordSet from "./SqordSet";
 import {
-  openInNewTab,
   generateRandomHex,
-  rnd,
   makeSqord,
-  prepareSqord,
-  mapValue,
   displaySqord,
 } from "./utility";
 
-let chunks: any = []; // Here we will save all video data
-let recorder: any;
-let clock = new THREE.Clock();
-let isRotating = false;  // Start with rotation enabled
-
-function updateGroupCenter(group: any) {
-  // Calculate the bounding box and get its center
-  let box = new THREE.Box3().setFromObject( group );
-  let center = box.getCenter( new THREE.Vector3() );
-
-  // Adjust group position
-  group.position.x = center.x;
-  group.position.y = center.y;
-  group.position.z = center.z;
-
-  // Adjust positions of all children
-  group.children.forEach((child: any) => {
-    child.position.x -= center.x;
-    child.position.y -= center.y;
-    child.position.z -= center.z;
-  });
+function shiftSceneLeft(scene: any, distance: number) {
+  const leftVector = new THREE.Vector3(-1, 0, 0);
+  scene.position.add(leftVector.multiplyScalar(distance));
 }
 
-export const Sqordinal3D = () => {
-  const { search } = useLocation();
-  const set: string = new URLSearchParams(search).get('set') || '0';
-  const vibe: string = new URLSearchParams(search).get('vibe') || '0';
+function updateGroupCenter(group: any, camera: any, scene: any) {
+  let box = new THREE.Box3().setFromObject(group);
+  let size = box.getSize(new THREE.Vector3());
 
+  let maxDim = Math.max(size.x, size.y, size.z);
+  let fov = camera.fov * (Math.PI / 180);
+  let cameraZ = Math.abs(maxDim / 4 * Math.tan(fov * 2));
+  
+  camera.position.z = cameraZ * 3;
+}
+
+let cleanup = false;
+
+export const Sqordinal3D = ({ seed, set, isPause }: any) => {
   const myRender: any = useRef();
   const mySqord: any = useRef();
-  const { id }: any = useParams();
-  const navigate = useNavigate();
-  const [isPause, setIsPause] = useState(false);
-  const [record, setRecord] = useState(false);
-  const [value, setValue]: any = useState(0);
-
-  const index = parseInt(id, 10);
+  const mySet: any = useRef();
+  const myGroup: any = useRef();
+  const myScene: any = useRef();
+  const myControls: any = useRef();
+  const myCamera: any = useRef();
+  const myAnimate: any = useRef();
 
   useEffect(() => {
-    if (index < 0 || index > 255 || _.isNaN(index)) {
-      window.location.assign(`/`);
-    }
-  }, [index, navigate]);
+    if (!_.isUndefined(mySet.current) && mySet.current !== set) {
+      window.set = 0;
 
-  const seed = seeds[index];
+      if (myGroup.current) {
+        myGroup.current.traverse((object: any) => {
+          if (!object.isMesh) return;
+        
+          if (object.geometry) {
+            object.geometry.dispose();
+          }
+        
+          if (object.material) {
+            if (Array.isArray(object.material)) {
+              object.material.forEach((material: any) => material.dispose());
+            } else {
+              object.material.dispose();
+            }
+          }
+        });
+  
+        while(myGroup.current.children.length > 0){ 
+          myGroup.current.remove(myGroup.current.children[0]); 
+        }
+      }
+
+      mySqord.current = makeSqord(seed.hash, false, null);
+
+      if (set > 0) {
+        for (let i = 1; i <= set; i++) {
+          mySqord.current = makeSqord('', true, generateRandomHex(mySqord.current));
+        }
+      }
+
+      mySet.current = window.set;
+      mySqord.current.pause = isPause;
+
+      for (let j = 0; j < (mySqord.current.segments - 1); j++) {
+        for (let i = 0; i <= (mySqord.current.steps); i++) {
+          displaySqord(mySqord, myGroup.current, j, i);
+        }
+
+        mySqord.current.seed = parseInt(mySqord.current.hash.slice(0, 16), 16);
+      }
+
+      mySqord.current.counter = !mySqord.current.reverse ? mySqord.current.allObjects.length - 1 : 0;
+
+      updateGroupCenter(myGroup.current, myCamera.current, myScene.current);
+    }
+  }, [set]);
+
+  useEffect(() => {
+    if (mySqord.current) {
+      mySqord.current.pause = isPause;
+    }
+  }, [isPause]);
 
   useEffect(() => {
     if (!mySqord.current && seed) {
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 3000);
+      window.set = 0;
+      myScene.current = new THREE.Scene();
+      myCamera.current = new THREE.PerspectiveCamera(33, window.innerWidth / window.innerHeight, 0.1, 3000);
       const renderer = new THREE.WebGLRenderer();
       renderer.setSize(window.innerWidth, window.innerHeight);
 
       myRender.current.appendChild(renderer.domElement);
 
-      const controls = new ArcballControls( camera, document.body, scene );
+      myControls.current = new ArcballControls( myCamera.current, document.body, myScene.current );
 
-      controls.addEventListener('change', function () {
-        renderer.render( scene, camera );
+      myControls.current.addEventListener('change', function () {
+        renderer.render( myScene.current, myCamera.current );
       });
 
-      camera.position.x = 0;
-      camera.position.z = 560;
-      controls.update();
-
-      controls.setGizmosVisible(false);
-      controls.maxDistance = 2000;
+      myControls.current.setGizmosVisible(false);
+      myControls.current.maxDistance = 2000;
 
       const hemiLight = new THREE.HemisphereLight(0x000000, 0xffffff, 0.2);
       hemiLight.position.set(200, 200, 0);
-      scene.add(hemiLight);
+      myScene.current.add(hemiLight);
 
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-      scene.add(ambientLight);
+      myScene.current.add(ambientLight);
 
       mySqord.current = makeSqord(seed.hash, false, null);
       let sqord = mySqord.current;
       sqord.height = window.innerHeight;
       sqord.width = window.innerWidth;
 
-      sqord.ht = mapValue(sqord.decPairs[27], 0, 255, 3, 4);
-      sqord.color = 0;
-      sqord.div = Math.floor(mapValue(Math.round(sqord.decPairs[24]), 0, 230, 3, 20));
-
-      console.log(sqord);
-
-      let group = new THREE.Group();
-
-      for (let j = 0; j < (sqord.segments - 1); j++) {
-        for (let i = 0; i <= (sqord.steps); i++) {
-          displaySqord(mySqord, group, j, i);
+      if (set > 0) {
+        for (let i = 1; i <= set; i++) {
+          mySqord.current = makeSqord('', true, generateRandomHex(mySqord.current));
         }
-
-        sqord.seed = parseInt(sqord.hash.slice(0, 16), 16);
       }
 
-      sqord.counter = !sqord.reverse ? sqord.allObjects.length - 1 : 0;
+      mySet.current = window.set;
+      mySqord.current.pause = isPause;
 
-      scene.add(group);
+      myGroup.current = new THREE.Group();
 
-      updateGroupCenter(group);
-
-      document.body.addEventListener("keydown", function (event) {
-        if (event.code === 'Space') {
-          isRotating = !isRotating;
+      for (let j = 0; j < (mySqord.current.segments - 1); j++) {
+        for (let i = 0; i <= (mySqord.current.steps); i++) {
+          displaySqord(mySqord, myGroup.current, j, i);
         }
-      }, false);
+
+        mySqord.current.seed = parseInt(mySqord.current.hash.slice(0, 16), 16);
+      }
+
+      mySqord.current.counter = !mySqord.current.reverse ? mySqord.current.allObjects.length - 1 : 0;
+
+      myScene.current.add(myGroup.current);
+
+      updateGroupCenter(myGroup.current, myCamera.current, myScene.current);
+      shiftSceneLeft(myScene.current, window.innerWidth / 4);
 
       const animate = function () {
-        requestAnimationFrame(animate);
+        myAnimate.current = requestAnimationFrame(animate);
 
-        if (isRotating) {
-          group.rotation.y += sqord.speed / 100 * sqord.rotateY;
-          group.rotation.x += sqord.speed / 100 * sqord.rotateX;
-          group.rotation.z += sqord.speed / 100 * sqord.rotateZ;
+        if (!mySqord.current.pause) {
+          myGroup.current.rotation.y += mySqord.current.speed / 1000 * mySqord.current.rotateY;
+          myGroup.current.rotation.x += mySqord.current.speed / 1000 * mySqord.current.rotateX;
+          myGroup.current.rotation.z += mySqord.current.speed / 1000 * mySqord.current.rotateZ;
         }
 
-        controls.target.copy( group.position );
-        controls.update();
+        myControls.current.target.copy( myGroup.current.position );
+        myControls.current.update();
 
-        sqord.color = 0;
+        mySqord.current.color = 0;
 
-        if (!sqord.start && !sqord.flipper) {
-          const allObject = sqord.allObjects[sqord.counter];
+        if (!mySqord.current.start && !mySqord.current.flipper) {
+          const allObject = mySqord.current.allObjects[mySqord.current.counter];
           allObject[allObject.type].visible = false;
 
-          sqord.counter = !sqord.reverse ? sqord.counter - 1 : sqord.counter + 1;
+          mySqord.current.counter = !mySqord.current.reverse ? mySqord.current.counter - 1 : mySqord.current.counter + 1;
 
           if (
-            (!sqord.reverse && sqord.counter === 0) ||
-            (sqord.reverse && sqord.counter === sqord.allObjects.length - 1)
+            (!mySqord.current.reverse && mySqord.current.counter === 0) ||
+            (mySqord.current.reverse && mySqord.current.counter === mySqord.current.allObjects.length - 1)
           ) {
-            sqord.reverse = !sqord.reverse;
-            sqord.start = true;
+            mySqord.current.reverse = !mySqord.current.reverse;
+            mySqord.current.start = true;
           }
         }
 
-        if (sqord.start && !sqord.flipper && !sqord.changing) {
-          const allObject = sqord.allObjects[sqord.counter];
+        if (mySqord.current.start && !mySqord.current.flipper && !mySqord.current.changing) {
+          const allObject = mySqord.current.allObjects[mySqord.current.counter];
           allObject[allObject.type].visible = true;
 
-          sqord.counter = !sqord.reverse ? sqord.counter - 1 : sqord.counter + 1;
+          mySqord.current.counter = !mySqord.current.reverse ? mySqord.current.counter - 1 : mySqord.current.counter + 1;
 
           if (
-            (!sqord.reverse && sqord.counter === 0) ||
-            (sqord.reverse && sqord.counter === sqord.allObjects.length - 1)
+            (!mySqord.current.reverse && mySqord.current.counter === 0) ||
+            (mySqord.current.reverse && mySqord.current.counter === mySqord.current.allObjects.length - 1)
           ) {
-            sqord.changing = true;
+            mySqord.current.changing = true;
 
             setTimeout(() => {
-              sqord.start = false;
-              sqord.changing = false;
-              if (sqord.dodge) {
-                sqord.counter = sqord.reverse ? 0 : sqord.allObjects.length - 1;
+              mySqord.current.start = false;
+              mySqord.current.changing = false;
+              if (mySqord.current.dodge) {
+                mySqord.current.counter = mySqord.current.reverse ? 0 : mySqord.current.allObjects.length - 1;
               } else {
-                sqord.reverse = !sqord.reverse;
+                mySqord.current.reverse = !mySqord.current.reverse;
               }
             }, 10000);
           }
         }
 
-        for (const allObject of sqord.allObjects) {
-          let hue = sqord.flow ?
-            360 - (((sqord.color / sqord.spread) + sqord.startColor + Math.abs(sqord.index)) % 360) :
-            (((sqord.color / sqord.spread) + sqord.startColor) + Math.abs(sqord.index)) % 360;
+        for (const allObject of mySqord.current.allObjects) {
+          let hue = mySqord.current.flow ?
+            360 - (((mySqord.current.color / mySqord.current.spread) + mySqord.current.startColor + Math.abs(mySqord.current.index)) % 360) :
+            (((mySqord.current.color / mySqord.current.spread) + mySqord.current.startColor) + Math.abs(mySqord.current.index)) % 360;
 
           if (allObject.type !== 'blank') {
             if (hue) {
               allObject[allObject.type].material.color.setHSL(hue / 360, 1, 0.5);
             } else {
-              let gray = ((sqord.color + Math.abs(sqord.index)) % 255) / 255;
+              let gray = ((mySqord.current.color + Math.abs(mySqord.current.index)) % 255) / 255;
               allObject[allObject.type].material.color = new THREE.Color(gray, gray, gray);
             }
 
             allObject[allObject.type].material.needsUpdate = true;
-            sqord.color++;
+            mySqord.current.color++;
           }
 
           mySqord.current.seed = parseInt(mySqord.current.hash.slice(0, 16), 16);
         }
 
-        sqord.index = sqord.reverse ? (sqord.index - sqord.speed) : sqord.index + sqord.speed;
+        mySqord.current.index = mySqord.current.reverse ? (mySqord.current.index - mySqord.current.speed) : mySqord.current.index + mySqord.current.speed;
 
-        renderer.render(scene, camera);
+        renderer.render(myScene.current, myCamera.current);
       };
-  
+
       animate();
     }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (myAnimate.current && myGroup.current && myScene.current && process.env.NODE_ENV === 'production') {
+        cancelAnimationFrame(myAnimate.current);
+
+        myGroup.current.traverse((object: any) => {
+          if (!object.isMesh) return;
+
+          if (object.geometry) {
+            object.geometry.dispose();
+          }
+        
+          if (object.material) {
+            if (Array.isArray(object.material)) {
+              object.material.forEach((material: any) => material.dispose());
+            } else {
+              object.material.dispose();
+            }
+          }
+        });
+  
+        while(myGroup.current.children.length > 0){ 
+          myGroup.current.remove(myGroup.current.children[0]); 
+        }
+
+        myScene.current.remove(myGroup.current);
+
+        myScene.current.remove();
+      }
+    };
   }, []);
 
   return (

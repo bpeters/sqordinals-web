@@ -97,6 +97,7 @@ const hslToRgba = (h: any, s: any, l: any, a: any) => {
   return `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${a})`;
 }
 
+let cleanup = false;
 
 const makeSqord = (hash: any, isNext: any, sqord2: any) => {
   let sqord: any = {
@@ -221,8 +222,6 @@ const displaySqord = (
 
   let x = catmullRom(t, x1, x2, x3, x4);
   let y = catmullRom(t, y1, y2, y3, y4);
-
-  y = y * -1;
 
   let z = -1 * ((sqord.segments * sqord.amp) + i + 1)
 
@@ -461,12 +460,13 @@ const displaySqord = (
   sqord.color++;
 };
 
-export const Sqordinal2 = ({ seed, setCanvas, set, isPause, handleSetPause }: any) => {
+export const Sqordinal2 = ({ seed, setCanvas, set, isPause }: any) => {
   const mySet: any = useRef();
   const myRender: any = useRef();
   const mySqord: any = useRef();
   const myIllo: any = useRef();
   const myGroup: any = useRef();
+  const myAnimate: any = useRef();
 
   let width = window.innerWidth;
   let height = window.innerHeight;
@@ -492,7 +492,7 @@ export const Sqordinal2 = ({ seed, setCanvas, set, isPause, handleSetPause }: an
 
       myGroup.current = new Zdog.Group({
         addTo: anchor,
-        translate: { x: -1 * (width / 3.6), z: 0, y: 0 },
+        translate: { x: -1 * (width / 4), z: 0, y: 0 },
       });
 
       for (let j = 0; j < (mySqord.current.segments - 1); j++) {
@@ -549,7 +549,7 @@ export const Sqordinal2 = ({ seed, setCanvas, set, isPause, handleSetPause }: an
 
       myGroup.current = new Zdog.Group({
         addTo: anchor,
-        translate: { x: -1 * (width / 3.6), z: 0, y: 0 },
+        translate: { x: -1 * (width / 4), z: 0, y: 0 },
       });
 
       for (let j = 0; j < (mySqord.current.segments - 1); j++) {
@@ -682,10 +682,18 @@ export const Sqordinal2 = ({ seed, setCanvas, set, isPause, handleSetPause }: an
         sqord.index = sqord.reverse ? (sqord.index - sqord.speed) : sqord.index + sqord.speed;
 
         myIllo.current.updateRenderGraph();
-        requestAnimationFrame(animate);
+        myAnimate.current = requestAnimationFrame(animate);
       }
       animate();
     }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (myAnimate.current && mySqord.current && process.env.NODE_ENV === 'production') {
+        cancelAnimationFrame(myAnimate.current);
+      }
+    };
   }, []);
 
   return (

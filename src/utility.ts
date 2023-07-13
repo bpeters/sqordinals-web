@@ -121,13 +121,12 @@ export const makeSqord = (hash: any, isNext: boolean, sqord2: any) => {
   sqord.dodge = sqord.decPairs[8] < 15;
   sqord.squared = sqord.decPairs[6] < 15;
   sqord.spread = (sqord.decPairs[28] < 15 ? 2 : mapValue(sqord.decPairs[28], 0, 255, 5, 50)) || 0;
-  sqord.rotateX = (sqord.decPairs[15] < 128 ? -1 * sqord.decPairs[15] / 255 : sqord.decPairs[15] / 255) || 0;
-  sqord.rotateY = (sqord.decPairs[16] < 128 ? -1 * sqord.decPairs[16] / 255 : sqord.decPairs[15] / 255) || 0;
-  sqord.rotateZ = (sqord.decPairs[14] < 128 ? -1 * sqord.decPairs[14] / 255 : sqord.decPairs[14] / 255) || 0;
+  sqord.rotateX = (sqord.decPairs[15] < 128 ? -1 * sqord.decPairs[15] / 255 : sqord.decPairs[15] / 255) + 0.1 || 1;
+  sqord.rotateY = (sqord.decPairs[16] < 128 ? -1 * sqord.decPairs[16] / 255 : sqord.decPairs[15] / 255) + 0.1 || 1;
+  sqord.rotateZ = (sqord.decPairs[14] < 128 ? -1 * sqord.decPairs[14] / 255 : sqord.decPairs[14] / 255) + 0.1 || 1;
   sqord.spikes = sqord.decPairs[13] < 128;
   sqord.flow = sqord.decPairs[12] < 128;
   sqord.index = 0;
-  sqord.pause = false;
 
   sqord.steps = sqord.slinky ?
     ((sqord.decPairs[17] % 100) + 1) :
@@ -158,11 +157,25 @@ export const makeSqord = (hash: any, isNext: boolean, sqord2: any) => {
     sqord.reverse = sqord.decPairs[30] < 128;
   }
 
+  sqord.ht = mapValue(sqord.decPairs[27], 0, 255, 3, 4);
+  sqord.color = 0;
+  sqord.div = Math.floor(mapValue(Math.round(sqord.decPairs[24]), 0, 230, 3, 20));
+
   sqord.start = true;
-  sqord.stop = false;
 
   return sqord;
 };
+
+const catmullRom = (t: any, p0: any, p1: any, p2: any, p3: any) => {
+  const v0 = (p2 - p0) * 0.5;
+  const v1 = (p3 - p1) * 0.5;
+  const t2 = t * t;
+  const t3 = t * t * t;
+
+  return (2 * p1 - 2 * p2 + v0 + v1) * t3 +
+    (-3 * p1 + 3 * p2 - 2 * v0 - v1) * t2 +
+    v0 * t + p1;
+}
 
 export const displaySqord = (
   mySqord: any,
@@ -189,11 +202,12 @@ export const displaySqord = (
   let y3 = mapValue(sqord.decPairs[j + 2], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp || 0;
   let y4 = mapValue(sqord.decPairs[j + 3], 0, 255, -height / sqord.ht, height / sqord.ht) * sqord.amp || 0;
 
-  let { x, y } = curvePoint(x1, y1, x2, y2, x3, y3, x4, y4, t);
+  let x = catmullRom(t, x1, x2, x3, x4);
+  let y = catmullRom(t, y1, y2, y3, y4);
 
   y = y * -1;
 
-  let z = -2 * ((sqord.segments * sqord.amp) + i + 1)
+  let z = -1 * ((sqord.segments * sqord.amp) + i + 1)
 
   let hue = sqord.reverse ?
     360 - (((sqord.color / sqord.spread) + sqord.startColor + Math.abs(sqord.index)) % 360) :
@@ -210,8 +224,8 @@ export const displaySqord = (
     y = uuu * y1 + 3 * uu * t * y2 + 3 * u * tt * y3 + ttt * y4;
   }
 
-  if (sqord.spikes) {
-    let { x: x0, y: y0 } = curvePoint(x1, y1, x2, y2, x3, y3, x4, y4, sqord.flowers ? 0 : 1);
+  if (sqord.flowers && sqord.spikes) {
+    let { x: x0, y: y0 } = curvePoint(x1, y1, x2, y2, x3, y3, x4, y4, t);
 
     let curve = new THREE.QuadraticBezierCurve3(
       new THREE.Vector3( x0, y0, z ), // control point
@@ -294,7 +308,7 @@ export const displaySqord = (
       object,
     });
   } else {
-    let size = height / 35;
+    let size = height / 32;
 
     if (sqord.slinky && sqord.pipe) {
       material = new THREE.MeshStandardMaterial({ color: new THREE.Color('black') });

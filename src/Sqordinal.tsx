@@ -137,8 +137,11 @@ function rnd(sqord: any) {
   return (((sqord.seed < 0) ? ~sqord.seed + 1 : sqord.seed) % 1000) / 1000;
 }
 
+let cleanup = false;
+
 export const Sqordinal = ({ seed, setCanvas, set, isPause }: any) => {
   const mySet: any = useRef();
+  const myCanvas: any = useRef();
   const myP5: any = useRef();
   const mySqord: any = useRef();
 
@@ -184,13 +187,13 @@ export const Sqordinal = ({ seed, setCanvas, set, isPause }: any) => {
       mySqord.current.pause = isPause;
 
       p.setup = function () {
-        let canvas = p.createCanvas(p.windowWidth, p.windowHeight);
+        myCanvas.current = p.createCanvas(p.windowWidth, p.windowHeight);
 
-        setCanvas(canvas);
+        setCanvas(myCanvas.current);
 
-        canvas.ontouchstart = () => {};
-        canvas.ontouchmove = () => {};
-        canvas.ontouchend = () => {};
+        myCanvas.current.ontouchstart = () => {};
+        myCanvas.current.ontouchmove = () => {};
+        myCanvas.current.ontouchend = () => {};
 
         p.colorMode(p.HSB, 360);
         p.strokeWeight(p.height / 1200);
@@ -485,6 +488,15 @@ export const Sqordinal = ({ seed, setCanvas, set, isPause }: any) => {
         }
       };
     }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (myP5.current && myCanvas.current) {
+        myP5.current.noLoop();
+        myCanvas.current.remove();
+      }
+    };
   }, []);
 
   return (

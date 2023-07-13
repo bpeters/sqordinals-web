@@ -159,7 +159,6 @@ export const App = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="sqordinal/:id" element={<SqordinalUI />} />
-          <Route path="awaken/:awakenId" element={<SqordinalUI />} />
         </Routes>
         <Footer />
       </Router>

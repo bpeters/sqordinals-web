@@ -11,13 +11,14 @@ import {
   Input,
   IconButton,
   Tooltip,
+  Select,
 } from "@chakra-ui/react"
 import { useParams, useNavigate, createSearchParams, useLocation } from 'react-router-dom';
 import { TbWaveSine, TbInfinity, TbRecordMail, TbRecordMailOff } from 'react-icons/tb';
-import { SiAtom, SiMatomo } from 'react-icons/si';
 
 import { Sqordinal } from "./Sqordinal";
 import { Sqordinal2 } from "./Sqordinal2";
+import { Sqordinal3D } from "./Sqordinal3D";
 import { seeds } from "./seeds";
 import RecordTimer from "./RecordTimer";
 import SqordSet from "./SqordSet";
@@ -32,15 +33,18 @@ const openInNewTab = (url: string) => {
 
 export const SqordinalUI = () => {
   const { search } = useLocation();
-  const set: string = new URLSearchParams(search).get('set') || '0';
+  const set: number = parseInt(new URLSearchParams(search).get('set') || '0', 10);
   const vibe: string = new URLSearchParams(search).get('vibe') || '0';
+  const m: string = new URLSearchParams(search).get('mode') || '0';
 
   const { id, awakenId }: any = useParams();
   const navigate = useNavigate();
   const [isPause, setIsPause] = useState(vibe === '1' ? true : false);
   const [record, setRecord] = useState(false);
-  const [value, setValue]: any = useState(set || 0);
+  const [value, setValue]: any = useState(set);
   const [canvas, setCanvas]: any = useState(null);
+
+  const [mode, setMode]: any = useState(m);
 
   const index = awakenId ? parseInt(awakenId, 10) : parseInt(id, 10);
   const outOfRange = index < 0 || index > 255;
@@ -63,6 +67,7 @@ export const SqordinalUI = () => {
       search: `?${createSearchParams({
         set: value,
         vibe: isPause ? '1' : '0',
+        mode,
       })}`,
     }, { replace: true });
   }
@@ -111,6 +116,7 @@ export const SqordinalUI = () => {
       search: `?${createSearchParams({
         set: value,
         vibe: isPause ? '0' : '1',
+        mode,
       })}`,
     }, { replace: true });
   };
@@ -203,27 +209,25 @@ export const SqordinalUI = () => {
           align={'flex-start'}
           paddingTop={'10px'}
         >
-          <Tooltip
-            label={awakenId ? 'Stop Awaken' : 'Start Awaken'}
-            placement="bottom"
-          >
-          <IconButton
-            fontSize={'12px'}
-            fontWeight={'bold'}
-            aria-label="Awake"
-            icon={awakenId ? <Icon as={SiAtom} color="#16FE07" boxSize="28px" /> : <Icon as={SiAtom} opacity={0.5} boxSize="28px" />}
-            onClick={() => {
-              if (!awakenId) {
-                window.location.assign(`/awaken/${id}?set=${set}&vibe=${vibe}`);
-              } else {
-                window.location.assign(`/sqordinal/${awakenId}?set=${set}&vibe=${vibe}`);
-              }
+          <Select
+            defaultValue={mode}
+            onChange={(event) => {
+              setMode(event.target.value);
+              navigate({
+                pathname: awakenId ? `/sqordinal/${awakenId}` : `/sqordinal/${id}`,
+                search: `?${createSearchParams({
+                  set: value,
+                  vibe: isPause ? '1' : '0',
+                  mode: event.target.value,
+                })}`,
+              }, { replace: true });
             }}
-            backgroundColor="transparent"
-            _hover={{ backgroundColor: 'gray.800' }}
-            _active={{ backgroundColor: 'gray.900' }}
-          />
-          </Tooltip>
+            backgroundColor={'transparent'}
+          >
+            <option value="0">Seed</option>
+            <option value="1">Sapling</option>
+            <option value="2">Tree</option>
+          </Select>
           <Tooltip
             label={isPause ? 'Stop Vibe' : 'Start Vibe'}
             placement="bottom"
@@ -241,39 +245,44 @@ export const SqordinalUI = () => {
             _active={{ backgroundColor: 'gray.900' }}
           />
           </Tooltip>
-          <Tooltip
-            label={record ? 'Stop Recording' : 'Start Recording'}
-            placement="bottom"
-          >
-            <IconButton
-              fontSize={'12px'}
-              fontWeight={'bold'}
-              aria-label="Record"
-              icon={record ? <Icon as={TbRecordMailOff} color="#FE0101" boxSize="28px" /> : <Icon as={TbRecordMail} color="#0100FF" boxSize="28px" />}
-              onClick={() => {
-                if (recorder) {
-                  if (!record) {
-                    recorder.start(1000);
-                  } else {
-                    recorder.stop();
+          {mode !== "2" && (
+            <Tooltip
+              label={record ? 'Stop Recording' : 'Start Recording'}
+              placement="bottom"
+            >
+              <IconButton
+                fontSize={'12px'}
+                fontWeight={'bold'}
+                aria-label="Record"
+                icon={record ? <Icon as={TbRecordMailOff} color="#FE0101" boxSize="28px" /> : <Icon as={TbRecordMail} color="#0100FF" boxSize="28px" />}
+                onClick={() => {
+                  if (recorder) {
+                    if (!record) {
+                      recorder.start(1000);
+                    } else {
+                      recorder.stop();
+                    }
                   }
-                }
 
-                setRecord(!record);
-              }}
-              backgroundColor="transparent"
-              _hover={{ backgroundColor: 'gray.800' }}
-              _active={{ backgroundColor: 'gray.900' }}
-            />
-          </Tooltip>
+                  setRecord(!record);
+                }}
+                backgroundColor="transparent"
+                _hover={{ backgroundColor: 'gray.800' }}
+                _active={{ backgroundColor: 'gray.900' }}
+              />
+            </Tooltip>
+          )}
           {record && <RecordTimer />}
         </HStack>
       </VStack>
-      {!outOfRange && !awakenId && (
+      {!outOfRange && mode === "0" && (
         <Sqordinal seed={seed} setCanvas={setCanvas} set={set} isPause={isPause} />
       )}
-      {!outOfRange && awakenId && (
-        <Sqordinal2 seed={seed} setCanvas={setCanvas} set={set} isPause={isPause} handleSetPause={handleSetPause} />
+      {!outOfRange && mode === "1" && (
+        <Sqordinal2 seed={seed} setCanvas={setCanvas} set={set} isPause={isPause} />
+      )}
+      {!outOfRange && mode === "2" && (
+        <Sqordinal3D seed={seed} set={set} isPause={isPause} />
       )}
     </VStack>
   )
