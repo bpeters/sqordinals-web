@@ -30,7 +30,7 @@ function updateGroupCenter(group: any, camera: any, scene: any) {
 
 let cleanup = false;
 
-export const Sqordinal3D = ({ seed, set, isPause }: any) => {
+export const Sqordinal3D = ({ seed, set, isPause, setSqord }: any) => {
   const myRender: any = useRef();
   const mySqord: any = useRef();
   const mySet: any = useRef();
@@ -74,6 +74,8 @@ export const Sqordinal3D = ({ seed, set, isPause }: any) => {
         }
       }
 
+      setSqord(mySqord.current);
+
       mySet.current = window.set;
       mySqord.current.pause = isPause;
 
@@ -102,7 +104,8 @@ export const Sqordinal3D = ({ seed, set, isPause }: any) => {
       window.set = 0;
       myScene.current = new THREE.Scene();
       myCamera.current = new THREE.PerspectiveCamera(33, window.innerWidth / window.innerHeight, 0.1, 3000);
-      const renderer = new THREE.WebGLRenderer();
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.setSize(window.innerWidth, window.innerHeight);
 
       myRender.current.appendChild(renderer.domElement);
@@ -116,12 +119,12 @@ export const Sqordinal3D = ({ seed, set, isPause }: any) => {
       myControls.current.setGizmosVisible(false);
       myControls.current.maxDistance = 2000;
 
-      const hemiLight = new THREE.HemisphereLight(0x000000, 0xffffff, 0.2);
-      hemiLight.position.set(200, 200, 0);
+      const hemiLight = new THREE.HemisphereLight(0x000000, 0xffffff, 1);
+      // hemiLight.position.set(200, 200, 0);
       myScene.current.add(hemiLight);
 
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-      myScene.current.add(ambientLight);
+      // const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+      // myScene.current.add(ambientLight);
 
       mySqord.current = makeSqord(seed.hash, false, null);
       let sqord = mySqord.current;
@@ -133,6 +136,8 @@ export const Sqordinal3D = ({ seed, set, isPause }: any) => {
           mySqord.current = makeSqord('', true, generateRandomHex(mySqord.current));
         }
       }
+
+      setSqord(mySqord.current);
 
       mySet.current = window.set;
       mySqord.current.pause = isPause;

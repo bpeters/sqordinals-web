@@ -14,7 +14,7 @@ import {
   Select,
 } from "@chakra-ui/react"
 import { useParams, useNavigate, createSearchParams, useLocation } from 'react-router-dom';
-import { TbWaveSine, TbInfinity, TbRecordMail, TbRecordMailOff } from 'react-icons/tb';
+import { TbWaveSine, TbInfinity, TbRecordMail, TbRecordMailOff, TbCamera } from 'react-icons/tb';
 
 import { Sqordinal } from "./Sqordinal";
 import { Sqordinal2 } from "./Sqordinal2";
@@ -43,6 +43,7 @@ export const SqordinalUI = () => {
   const [record, setRecord] = useState(false);
   const [value, setValue]: any = useState(set);
   const [canvas, setCanvas]: any = useState(null);
+  const [sqord, setSqord]: any = useState(null);
 
   const [mode, setMode]: any = useState(m);
 
@@ -228,10 +229,6 @@ export const SqordinalUI = () => {
             <option value="1">Sapling</option>
             <option value="2">Tree</option>
           </Select>
-          <Tooltip
-            label={isPause ? 'Stop Vibe' : 'Start Vibe'}
-            placement="bottom"
-          >
           <IconButton
             fontSize={'12px'}
             fontWeight={'bold'}
@@ -244,12 +241,27 @@ export const SqordinalUI = () => {
             _hover={{ backgroundColor: 'gray.800' }}
             _active={{ backgroundColor: 'gray.900' }}
           />
-          </Tooltip>
           {mode !== "2" && (
-            <Tooltip
-              label={record ? 'Stop Recording' : 'Start Recording'}
-              placement="bottom"
-            >
+            <IconButton
+              fontSize={'12px'}
+              fontWeight={'bold'}
+              aria-label="Snapshot"
+              icon={<Icon as={TbCamera} color="#FE0101" boxSize="28px" />}
+              onClick={() => {
+                console.log(canvas)
+                if (canvas) {
+                  const link = document.createElement('a');
+                  link.href = canvas.toDataURL('image/png');
+                  link.download = 'sqordinal.png';
+                  link.click();
+                }
+              }}
+              backgroundColor="transparent"
+              _hover={{ backgroundColor: 'gray.800' }}
+              _active={{ backgroundColor: 'gray.900' }}
+            />
+          )}
+          {mode !== "2" && (
               <IconButton
                 fontSize={'12px'}
                 fontWeight={'bold'}
@@ -270,19 +282,86 @@ export const SqordinalUI = () => {
                 _hover={{ backgroundColor: 'gray.800' }}
                 _active={{ backgroundColor: 'gray.900' }}
               />
-            </Tooltip>
           )}
           {record && <RecordTimer />}
         </HStack>
+        {sqord && (
+          <HStack
+            justify={'space-between'}
+            align={'flex-start'}
+            paddingTop={'10px'}
+            spacing={1}
+            width={'200px'}
+          >
+            <VStack align={'flex-start'}>
+              <Text fontSize={'10px'}>
+                <b>Pipe:</b> {sqord.pipe ? 'True' : 'False'}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Slinky:</b> {sqord.slinky ? 'True' : 'False'}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Segmented:</b> {sqord.segmented ? 'True' : 'False'}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Clouds:</b> {sqord.fuzzy ? 'True' : 'False'}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Flowers:</b> {sqord.flowers ? 'True' : 'False'}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Creepy:</b> {sqord.creepy ? 'True' : 'False'}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Squared:</b> {sqord.squared ? 'True' : 'False'}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Bold:</b> {sqord.bold ? 'True' : 'False'}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Chaser:</b> {sqord.dodge ? 'True' : 'False'}
+              </Text>
+            </VStack>
+            <VStack align={'flex-end'}>
+              <Text fontSize={'10px'}>
+                <b>Reverse:</b> {sqord.reverse ? 'True' : 'False'}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Familia:</b> {sqord.familia ? 'True' : 'False'}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Amp:</b> {_.round(sqord.amp * 100)}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Segments:</b> {Math.round(sqord.segments)}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Steps:</b> {sqord.steps}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Spread:</b> {_.round(sqord.spread)}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Speed:</b> {_.round(sqord.speed * 100)}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Color:</b> {sqord.startColor}
+              </Text>
+              <Text fontSize={'10px'}>
+                <b>Variance:</b> {_.round(sqord.ht, 2)}
+              </Text>
+            </VStack>
+          </HStack>
+        )}
       </VStack>
       {!outOfRange && mode === "0" && (
-        <Sqordinal seed={seed} setCanvas={setCanvas} set={set} isPause={isPause} />
+        <Sqordinal seed={seed} setCanvas={setCanvas} set={set} isPause={isPause} setSqord={setSqord} />
       )}
       {!outOfRange && mode === "1" && (
-        <Sqordinal2 seed={seed} setCanvas={setCanvas} set={set} isPause={isPause} />
+        <Sqordinal2 seed={seed} setCanvas={setCanvas} set={set} isPause={isPause} setSqord={setSqord} />
       )}
       {!outOfRange && mode === "2" && (
-        <Sqordinal3D seed={seed} set={set} isPause={isPause} />
+        <Sqordinal3D seed={seed} set={set} isPause={isPause} setSqord={setSqord} />
       )}
     </VStack>
   )

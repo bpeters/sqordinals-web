@@ -139,7 +139,7 @@ function rnd(sqord: any) {
 
 let cleanup = false;
 
-export const Sqordinal = ({ seed, setCanvas, set, isPause }: any) => {
+export const Sqordinal = ({ seed, setCanvas, set, isPause, setSqord }: any) => {
   const mySet: any = useRef();
   const myCanvas: any = useRef();
   const myP5: any = useRef();
@@ -155,6 +155,8 @@ export const Sqordinal = ({ seed, setCanvas, set, isPause }: any) => {
           mySqord.current = makeSqord('', true, generateRandomHex(mySqord.current), myP5.current);
         }
       }
+
+      setSqord(mySqord.current);
 
       mySqord.current.pause = isPause;
     }
@@ -183,6 +185,8 @@ export const Sqordinal = ({ seed, setCanvas, set, isPause }: any) => {
           mySqord.current = makeSqord('', true, generateRandomHex(mySqord.current), p);
         }
       }
+
+      setSqord(mySqord.current);
 
       mySqord.current.pause = isPause;
 
@@ -335,6 +339,7 @@ export const Sqordinal = ({ seed, setCanvas, set, isPause }: any) => {
       
           if (!mySqord.current.pause && p.abs(mySqord.current.index) > mySqord.current.speed * 15) {
             mySqord.current = makeSqord('', true, generateRandomHex(mySqord.current), p);
+            setSqord(mySqord.current);
           }
         }
 
@@ -382,6 +387,7 @@ export const Sqordinal = ({ seed, setCanvas, set, isPause }: any) => {
           if (mySqord.current.reverse && mySqord.current.moveSegments === p.floor(mySqord.current.segments)) {
             if (!mySqord.current.pause) {
               mySqord.current = makeSqord('', true, generateRandomHex(mySqord.current), p);
+              setSqord(mySqord.current);
             }
       
             mySqord.current.moveSegmentsR2 = p.floor(mySqord.current.segments);
@@ -393,6 +399,7 @@ export const Sqordinal = ({ seed, setCanvas, set, isPause }: any) => {
           } else if (!mySqord.current.reverse && mySqord.current.moveSegmentsR === p.floor(mySqord.current.segments)) { 
             if (!mySqord.current.pause) {
               mySqord.current = makeSqord('', true, generateRandomHex(mySqord.current), p);
+              setSqord(mySqord.current);
             }
             mySqord.current.moveSegmentsR2 = 0;
             mySqord.current.moveSegments2 = 0;

@@ -460,7 +460,7 @@ const displaySqord = (
   sqord.color++;
 };
 
-export const Sqordinal2 = ({ seed, setCanvas, set, isPause }: any) => {
+export const Sqordinal2 = ({ seed, setCanvas, set, isPause, setSqord }: any) => {
   const mySet: any = useRef();
   const myRender: any = useRef();
   const mySqord: any = useRef();
@@ -482,6 +482,8 @@ export const Sqordinal2 = ({ seed, setCanvas, set, isPause }: any) => {
           mySqord.current = makeSqord('', true, generateRandomHex(mySqord.current));
         }
       }
+
+      setSqord(mySqord.current);
 
       mySet.current = window.set;
       mySqord.current.pause = isPause;
@@ -517,7 +519,6 @@ export const Sqordinal2 = ({ seed, setCanvas, set, isPause }: any) => {
 
   useEffect(() => {
     if (!mySqord.current && seed) {
-
       setCanvas(myRender.current);
 
       myIllo.current = new Zdog.Illustration({
@@ -540,6 +541,8 @@ export const Sqordinal2 = ({ seed, setCanvas, set, isPause }: any) => {
           mySqord.current = makeSqord('', true, generateRandomHex(mySqord.current));
         }
       }
+
+      setSqord(mySqord.current);
 
       mySqord.current.pause = isPause;
 
