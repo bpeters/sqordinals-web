@@ -44,6 +44,7 @@ export const SqordinalUI = () => {
   const [value, setValue]: any = useState(set);
   const [canvas, setCanvas]: any = useState(null);
   const [sqord, setSqord]: any = useState(null);
+  const [showStats, setShowStats]: any = useState(false);
 
   const [mode, setMode]: any = useState(m);
 
@@ -285,7 +286,7 @@ export const SqordinalUI = () => {
           )}
           {record && <RecordTimer />}
         </HStack>
-        {sqord && (
+        {(sqord && showStats) && (
           <HStack
             justify={'space-between'}
             align={'flex-start'}
@@ -353,6 +354,19 @@ export const SqordinalUI = () => {
             </VStack>
           </HStack>
         )}
+        <Text
+          fontSize={'10px'}
+          opacity={0.8}
+          _hover={{
+            cursor: 'pointer',
+            textDecoration: 'underline',
+          }}
+          onClick={() => {
+            setShowStats(!showStats);
+          }}
+        >
+          {showStats ? 'Hide Stats' : 'Show Stats'}
+        </Text>
       </VStack>
       {!outOfRange && mode === "0" && (
         <Sqordinal seed={seed} setCanvas={setCanvas} set={set} isPause={isPause} setSqord={setSqord} />
