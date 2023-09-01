@@ -527,6 +527,10 @@ export const Sqordinal2 = ({ seed, setCanvas, set, isPause, setSqord }: any) => 
         zoom: 1,
       });
 
+      let ctx = myRender.current.getContext('2d');
+      ctx.fillStyle = "#000000"; // Set to white or any color of choice
+      ctx.fillRect(0, 0, myRender.current.width, myRender.current.height);
+
       let illo = myIllo.current;
 
       illo.setSize(width, height);

@@ -84,7 +84,7 @@ export const SqordinalUI = () => {
     if (canvas) {
       let stream = canvas.captureStream(30);
       recorder = new MediaRecorder(stream);
-  
+
       recorder.onerror = function(e: any) {
         console.error('Error: ', e);
       };
@@ -92,14 +92,14 @@ export const SqordinalUI = () => {
       recorder.ondataavailable = function(e: any) {
         chunks.push(e.data);
       };
-  
+
       recorder.onstop = function(e: any) {
         let blob = new Blob(chunks, { 'type' : 'video/webm' });
         chunks = [];
         let videoURL = URL.createObjectURL(blob);
   
         var a = document.createElement("a");
-  
+
         a.href = videoURL;
         a.download = 'sqordinal.webm';
   
@@ -249,12 +249,27 @@ export const SqordinalUI = () => {
               aria-label="Snapshot"
               icon={<Icon as={TbCamera} color="#FE0101" boxSize="28px" />}
               onClick={() => {
-                console.log(canvas)
                 if (canvas) {
-                  const link = document.createElement('a');
-                  link.href = canvas.toDataURL('image/png');
-                  link.download = 'sqordinal.png';
-                  link.click();
+                  const tempCanvas = document.createElement('canvas');
+                  tempCanvas.width = canvas.width;
+                  tempCanvas.height = canvas.height;
+
+                  const tempCtx = tempCanvas.getContext('2d');
+
+                  if (tempCtx) {
+                    // Draw the background color on the temporary canvas
+                    tempCtx.fillStyle = "#000000"; // Change this to your desired background color
+                    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+                    // Draw the content of the original canvas onto the temporary canvas
+                    tempCtx.drawImage(canvas, 0, 0);
+
+                    // Now, save the temporary canvas as an image
+                    const link = document.createElement('a');
+                    link.href = tempCanvas.toDataURL('image/png');
+                    link.download = 'sqordinal.png';
+                    link.click();
+                  }
                 }
               }}
               backgroundColor="transparent"
