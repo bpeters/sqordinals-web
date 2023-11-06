@@ -4,6 +4,9 @@ import { FaPause, FaMusic } from 'react-icons/fa'
 import { BiSkipNext } from 'react-icons/bi';
 
 const songs = [
+  '/audio/19_stealth.d.mp3',
+  '/audio/18_funk.d.mp3',
+  '/audio/17_d.efi.mp3',
   '/audio/16_ded.d.wav',
   '/audio/15_heavy.d.wav',
   '/audio/14_discover.d.wav',
@@ -23,6 +26,9 @@ const songs = [
 ];
 
 const songNames = [
+  'stealth.d',
+  'funk.d',
+  'd.efi',
   'ded.d',
   'heavy.d',
   'discover.d',
