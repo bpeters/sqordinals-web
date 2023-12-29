@@ -494,7 +494,8 @@ export const GodSeed = ({ seed, size }: any) => {
           textDecoration: 'underline',
         }}
         onClick={() => {
-          window.location.assign(`/sqordinal/${seed.index}`);
+          // window.location.assign(`/sqordinal/${seed.index}`);
+          navigate(`${seed.index}`);
         }}
       >
         {seed.name}

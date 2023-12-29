@@ -1,50 +1,54 @@
-import { Slider, SliderTrack, SliderFilledTrack, SliderThumb, IconButton, VStack, HStack, Text, Box } from '@chakra-ui/react';
+import { Slider, SliderTrack, SliderFilledTrack, SliderThumb, IconButton, VStack, HStack, Text, Box, useToast } from '@chakra-ui/react';
 import { useState, useEffect, useRef } from 'react';
-import { FaPause, FaMusic } from 'react-icons/fa'
+import { FaPause, FaMusic, FaPlay } from 'react-icons/fa'
 import { BiSkipNext } from 'react-icons/bi';
 
 const songs = [
-  '/audio/19_stealth.d.mp3',
-  '/audio/18_funk.d.mp3',
-  '/audio/17_d.efi.mp3',
-  '/audio/16_ded.d.wav',
-  '/audio/15_heavy.d.wav',
-  '/audio/14_discover.d.wav',
-  '/audio/13_explore.d.mp3',
-  '/audio/12_flowers.d.mp3',
-  '/audio/11_circus.d.mp3',
-  '/audio/10_infinitum.d.mp3',
-  '/audio/1_sigma.d.wav',
-  '/audio/2_dev.d.wav',
-  '/audio/3_blank.d.wav',
-  '/audio/4_dox.d.wav',
-  '/audio/5_alpha.d.wav',
-  '/audio/6_naughty.d.wav',
-  '/audio/7_simp.d.wav',
-  '/audio/8_beta.d.wav',
-  '/audio/9_burn.d.wav',
+  '/audio/1_defi.wav',
+  '/audio/2_beta.wav',
+  '/audio/3_dox.wav',
+  '/audio/4_circus.wav',
+  '/audio/5_discover.wav',
+  '/audio/6_blank.wav',
+  '/audio/7_explore.wav',
+  '/audio/8_ded.wav',
+  '/audio/9_alpha.wav',
+  '/audio/10_simp.wav',
+  '/audio/11_infintium.wav',
+  '/audio/12_heavy.wav',
+  '/audio/13_stealth.wav',
+  '/audio/14_sigma.wav',
+  '/audio/15_dev.wav',
+  '/audio/16_deep.wav',
+  '/audio/17_burn.wav',
+  '/audio/18_flowers.wav',
+  '/audio/19_honk.wav',
+  '/audio/20_naughty.wav',
+  '/audio/21_swing.wav',
 ];
 
 const songNames = [
-  'stealth.d',
-  'funk.d',
-  'd.efi',
-  'ded.d',
-  'heavy.d',
-  'discover.d',
-  'explore.d',
-  'flowers.d',
-  'circus.d',
-  'infinitum.d',
-  'sigma.d',
-  'dev.d',
-  'blank.d',
-  'dox.d',
-  'alpha.d',
-  'naughty.d',
-  'simp.d',
-  'beta.d',
-  'burn.d',
+  'defi',
+  'beta',
+  'dox',
+  'circus',
+  'discover',
+  'blank',
+  'explore',
+  'ded',
+  'alpha',
+  'simp',
+  'infintium',
+  'heavy',
+  'stealth',
+  'sigma',
+  'dev',
+  'deep',
+  'burn',
+  'flowers',
+  'honk',
+  'naughty',
+  'swing',
 ];
 
 const openInNewTab = (url: string) => {
@@ -52,11 +56,23 @@ const openInNewTab = (url: string) => {
   if (newWindow) newWindow.opener = null
 }
 
-const MusicPlayer = () => {
+const MusicPlayer = (props: any) => {
+  const toast = useToast();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const audioRef: any = useRef(null);
   const [volume, setVolume] = useState(1);
+
+  // useEffect(() => {
+  //   toast({
+  //     position: 'top-right',
+  //     title: 'New Album Drop!',
+  //     description: "",
+  //     status: 'info',
+  //     duration: 5000,
+  //     isClosable: true,
+  //   });
+  // }, [])
 
   useEffect(() => {
     if (audioRef.current) {
@@ -68,8 +84,12 @@ const MusicPlayer = () => {
     audioRef.current.addEventListener('ended', playNextSong);
 
     if (isPlaying) {
-      audioRef.current.play();
-      audioRef.current.volume = volume;
+      audioRef.current.play().then(() => {
+        audioRef.current.volume = volume;
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
     }
 
     return () => {
@@ -83,7 +103,9 @@ const MusicPlayer = () => {
   }, [volume]);
 
   const playNextSong = () => {
-    setCurrentSongIndex((currentSongIndex + 1) % songs.length);
+    const nextIndex = (currentSongIndex + 1) % songs.length;
+    setCurrentSongIndex(nextIndex);
+    props.setTrack(nextIndex);
   };
 
   const handlePlayPause = () => {
@@ -92,6 +114,52 @@ const MusicPlayer = () => {
 
   const handleVolumeChange = (value: any) => {
     setVolume(value);
+  };
+
+  const renderSongsList = () => {
+    return (
+      <Box
+        paddingY="4"
+        overflowX="auto"
+        whiteSpace="nowrap"
+        maxWidth="100vw"
+      >
+        <HStack
+          spacing="4"
+        >
+          {songs.map((song, index) => (
+            <Box
+              key={song}
+              padding="2"
+              borderRadius="md"
+              borderWidth="1px"
+              borderColor={currentSongIndex === index && isPlaying ? '#FF00EE' : 'white'}
+              backgroundColor="transparent"
+              _hover={{ borderColor: "#FF00EE", cursor: "pointer" }}
+              onClick={() => {
+                props.setTrack(index);
+                setCurrentSongIndex(index);
+                if (!isPlaying) {
+                  setIsPlaying(true);
+                }
+              }}
+            >
+              <Text
+                fontSize="sm"
+                color={currentSongIndex === index && isPlaying ? '#FF00EE' : 'white'}
+              >
+                {songNames[index]}
+              </Text>
+            </Box>
+          ))}
+          <Box>
+              <Text>
+                fin
+              </Text>
+          </Box>
+        </HStack>
+      </Box>
+    );
   };
 
   return (
@@ -167,6 +235,7 @@ const MusicPlayer = () => {
           <SliderThumb boxSize={3} />
         </Slider>
       </HStack>
+      {renderSongsList()}
     </VStack>
   );
 };

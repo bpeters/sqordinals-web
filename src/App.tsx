@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import { useState } from "react";
 import ReactGA from 'react-ga';
 import {
   ChakraProvider,
@@ -9,14 +10,22 @@ import {
   Box,
   Text,
 } from "@chakra-ui/react"
+import { getAddress, signMessage } from 'sats-connect';
 
-import { FaTwitter, FaMediumM, FaDiscord } from 'react-icons/fa'
+import { FaTwitter, FaMediumM, FaDiscord, FaMusic } from 'react-icons/fa'
 
 import { Home } from "./Home";
-import { Sqordinal3D } from "./Sqordinal3D";
-import { Sqordinal2 } from "./Sqordinal2";
 import { SqordinalUI } from "./SqordinalUI";
+import { Sqore } from "./Sqore";
 import MusicPlayer from "./MusicPlayer";
+
+
+declare global {
+  interface Window {
+    btc: any;
+    unisat: any;
+  }
+}
 
 ReactGA.initialize('G-S8026RGDNM');
 
@@ -65,8 +74,67 @@ const Header = () => {
           _hover={{
             cursor: 'pointer',
           }}
-          onClick={() => {
-            window.location.assign(`/`);
+          onClick={async () => {
+
+            // const getAddressOptions: any = {
+            //   payload: {
+            //     purposes: ['ordinals'],
+            //     message: 'Address for receiving Ordinals and payments',
+            //     network: {
+            //       type:'Mainnet'
+            //     },
+            //   },
+            //   onFinish: async (response: any) => {
+            //     console.log(response.addresses[0].address);
+            //     const signMessageOptions: any = {
+            //       payload: {
+            //         network: {
+            //           type: "Mainnet",
+            //         },
+            //         address: response.addresses[0].address,
+            //         message: "test",
+            //       },
+            //       onFinish: (r: any) => {
+            //         // signature
+            //         console.log(r)
+            //       },
+            //       onCancel: () => alert("Canceled"),
+            //     };
+            //     await signMessage(signMessageOptions);
+            //   },
+            //   onCancel: () => alert('Request canceled'),
+            //   }
+                
+            // await getAddress(getAddressOptions);
+
+            // if (typeof window.unisat !== 'undefined') {
+            //   console.log('UniSat Wallet is installed!');
+            //   let accounts = await window.unisat.requestAccounts();
+            //   console.log(accounts);
+
+            //   let res = await window.unisat.signMessage("test","bip322-simple");
+            //   console.log(res);
+            // }
+            // if (window && window.btc) {
+
+            //   const userAddresses = await window.btc?.request('getAddresses');
+
+            //   console.log(userAddresses);
+
+            //   // const userAccount = userAddresses.result.addresses
+            //   //   .find((address: any) => address.type === 'p2tr');
+
+            //   // console.log(userAccount)
+
+            //   const response = await window.btc.request('signMessage', { 
+            //     message: 'test', 
+            //     paymentType: 'p2tr' // or 'p2wphk' (default)
+            //   });
+
+            //   console.log(JSON.stringify(response));
+            // }
+            // window.location.assign(`/`);
+            navigate('sqordinal');
           }}
         />
         <Box
@@ -115,6 +183,17 @@ const Header = () => {
             width="30px"
           />
         </Box>
+        <Box
+          _hover={{
+            cursor: 'pointer',
+            opacity: 0.8,
+          }}
+          onClick={() => navigate('/')}
+        >
+          <FaMusic
+            color='#0100FF'
+          />
+        </Box>
       </HStack>
       <HStack
         spacing={4}
@@ -129,7 +208,7 @@ const Header = () => {
   )
 }
 
-const Footer = () => {
+const Footer = (props: any) => {
   return (
     <VStack
       zIndex={100000}
@@ -146,21 +225,24 @@ const Footer = () => {
       width={'100vw'}
       opacity={1}
     >
-      <MusicPlayer />
+      <MusicPlayer setTrack={props.setTrack} />
     </VStack>
   )
 };
 
 export const App = () => {
+  const [track, setTrack]: any = useState(0);
+
   return (
     <ChakraProvider theme={theme}>
       <Router>
         <Header />
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Sqore track={track} />} />
+          <Route path="sqordinal" element={<Home />} />
           <Route path="sqordinal/:id" element={<SqordinalUI />} />
         </Routes>
-        <Footer />
+        <Footer setTrack={setTrack} />
       </Router>
     </ChakraProvider>
   );
