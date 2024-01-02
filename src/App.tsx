@@ -12,7 +12,7 @@ import {
 } from "@chakra-ui/react"
 import { getAddress, signMessage } from 'sats-connect';
 
-import { FaTwitter, FaMediumM, FaDiscord, FaMusic } from 'react-icons/fa'
+import { FaTwitter, FaMediumM, FaDiscord, FaMusic, FaSpotify } from 'react-icons/fa'
 
 import { Home } from "./Home";
 import { SqordinalUI } from "./SqordinalUI";
@@ -153,10 +153,10 @@ const Header = () => {
             cursor: 'pointer',
             opacity: 0.8,
           }}
-          onClick={() => openInNewTab('https://sqordinals.medium.com/')}
+          onClick={() => openInNewTab('https://open.spotify.com/album/0sponPpRy5Z7w8A1isGjBx?si=CQwYRvMdREeYEjraPO6_aA')}
         >
-          <FaMediumM
-            color='#FEFE04'
+          <FaSpotify
+            color='#1BD661'
           />
         </Box>
         <Box

@@ -51,6 +51,30 @@ const songNames = [
   'swing',
 ];
 
+const songLinks = [
+  'https://open.spotify.com/track/0hJ3ciInSbYrVAeZ9ajy2F?si=3857f20a25f74c93',
+  'https://open.spotify.com/track/2YzqirGILtKtjMx36ODvFi?si=06b2e885422c48ad',
+  'https://open.spotify.com/track/2WYaIH97wyw3YZ6vTMfp5P?si=f90672031146487c',
+  'https://open.spotify.com/track/1qIfYca82LbOzJsIkAibBX?si=7038c0a2440c4cda',
+  'https://open.spotify.com/track/3T8sHbQpkGWh0sad8PFhgD?si=431b36b82c054afb',
+  'https://open.spotify.com/track/1W4DCJVi3Sutas2oK9KrGG?si=2c38d5b346bc48c3',
+  'https://open.spotify.com/track/2a1U1D9RHqTBpdkuviERWb?si=7e2ad803dacb4bef',
+  'https://open.spotify.com/track/3BCIiDUCxadCksjoLjzolb?si=318044131f344576',
+  'https://open.spotify.com/track/28P0TSND4GPUseKwJQuSsP?si=2b8935b36b85408d',
+  'https://open.spotify.com/track/6mwYCJVLtunw0NtxYDbM9m?si=32222fd14ade48be',
+  'https://open.spotify.com/track/3fDeVCY8OzrjwxVbqrf8Fj?si=b1fee13aeb794242',
+  'https://open.spotify.com/track/6MHpoNxykxepSxoWUhwDbr?si=597ec7ba255f4333',
+  'https://open.spotify.com/track/2Oek7n5teZbwb79biWEa5E?si=d3c425eccf7f4fb6',
+  'https://open.spotify.com/track/1TYS3qCyzZqoB78b4j9eCb?si=aaadd73caca147e8',
+  'https://open.spotify.com/track/4jWdD4fRDkpVlpUmumBhuv?si=d8f535164d2f4bbc',
+  'https://open.spotify.com/track/0kEOL9bdP5s9wBI2RCUctf?si=8123819030eb4b99',
+  'https://open.spotify.com/track/2CDscJPEobtxjcD9aAKzDk?si=ec7132f3bdb9403d',
+  'https://open.spotify.com/track/2ZPnhd4VUtjBa30jHkLUmw?si=67e9640ba8de4e9a',
+  'https://open.spotify.com/track/4ZogGWDVzMDQj2oo3isUk0?si=58b15a6658db4547',
+  'https://open.spotify.com/track/57G9zGrqP50Q15Nz4Cnflc?si=fe0c6e42d3ca4fbb',
+  'https://open.spotify.com/track/77uUXF5OUq68lCGlVtUT1w?si=5c4e7a085ee14a65',
+]
+
 const openInNewTab = (url: string) => {
   const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
   if (newWindow) newWindow.opener = null
@@ -184,12 +208,26 @@ const MusicPlayer = (props: any) => {
         <HStack
           spacing={1}
         >
+        {isPlaying && (
+          <Text
+            onClick={() => {openInNewTab(songLinks[currentSongIndex])}}
+            color="#FF00EE"
+            fontWeight={'bold'}
+            fontSize={'12px'}
+            _hover={{
+              cursor: 'pointer',
+              opacity: 0.8,
+            }}
+          >
+            {songNames[currentSongIndex]}
+          </Text>
+        )}
         <Text
           color="#fff"
           fontSize={'12px'}
           opacity={isPlaying ? 1 : 0.5}
         >
-          {isPlaying ? `${songNames[currentSongIndex]} by` : 'not playing'}
+          {isPlaying ? `by` : 'not playing'}
         </Text>
         {isPlaying && (
           <Text
